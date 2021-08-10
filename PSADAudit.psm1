@@ -5,4 +5,7 @@
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
 # This improves performance of command discovery in PowerShell.
 
-Export-ModuleMember -Function "Invoke-ADAudit"
+#Export-ModuleMember -Function "Invoke-ADAudit"
+Get-ChildItem -Path "$PSScriptRoot/Public", "$PSScriptRoot/Private" -File -Recurse *.ps1 | ForEach-Object {
+    . $_.FullName
+}
