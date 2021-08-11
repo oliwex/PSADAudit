@@ -481,6 +481,8 @@ function ConvertTo-Name {
 #scope=universal/global/domain_local
 #builtin=tworzone przy starcie AD
 ##########################################################################################
+function Invoke-ADAudit
+{
 
 $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtable $graphFolders
 
@@ -792,3 +794,4 @@ foreach ($fgpp in $fgpps) {
 ##############################################################################################################
 Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
 Invoke-Item -Path $reportFilePath
+}
