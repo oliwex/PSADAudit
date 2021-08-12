@@ -146,7 +146,6 @@ function Get-USERInformation {
             'AccountNotDelegated'               = $data.AccountNotDelegated
             'AllowReversiblePasswordEncryption' = $data.AllowReversiblePasswordEncryption
             'BadLogonCount'                     = $data.BadLogonCount
-            #   'BadPasswordCount'                  = $data.BadPasswordCount
             'CannotChangePassword'              = $data.CannotChangePassword
             'CanonicalName'                     = $data.CanonicalName
             'Certificates'                      = $data.Certificates
@@ -154,13 +153,11 @@ function Get-USERInformation {
             'City'                              = $data.City
             'CommonName'                        = $data.cn
             'Company'                           = $data.Company
-            #    'Comment'                           = $data.Comment
             'Country'                           = $data.Country
-            #    'CountryCode'                       = $data.CountryCode 
             'DesktopProfile'                    = $data.DesktopProfile
             'Department'                        = $data.Department
             'Description'                       = $data.Description
-            #    'DirectReport'                      = $data.DirectReports
+            'DirectReport'                      = $data.DirectReports
             'DisplayName'                       = $data.DisplayName
             'DistinguishedName'                 = $data.DistinguishedName
             'Division'                          = $data.Division
@@ -183,7 +180,7 @@ function Get-USERInformation {
             'LastLogOff'                        = $data.LastLogOff
             'LastLogonDate'                     = $data.LastLogonDate
             'LockedOut'                         = $data.LockedOut
-            #  'LockoutTime'                       = $data.LockoutTime
+              'LockoutTime'                       = $data.LockoutTime
             'LogonHours'                        = $data.LogonHours
             'LogonWorkstations'                 = $data.LogonWorkstations
             'Manager'                           = $data.Manager
@@ -251,7 +248,7 @@ function Get-ComputerInformation {
         'Certificates' = $data.Certificates
         'CommonName' = $data.CommonName
         'CodePage' = $data.codepage
-        #'CountryCode' = $data.CountryCode
+            'CountryCode' = $data.CountryCode
         'Description' = $data.Description
         'DisplayName' = $data.DisplayName
         'DistinguishedName' = $data.DistinguishedName
@@ -268,7 +265,7 @@ function Get-ComputerInformation {
         'LastBadPasswordAttempt' = $data.LastBadPasswordAttempt
         'LastKnownParent' = $data.LastKnownParent
         'LastLogonDate' = $data.LastLogonDate
-        #'LocalPolicyFlags' = $data.LocalPolicyFlags
+            'LocalPolicyFlags' = $data.LocalPolicyFlags
         'Location' = $data.Location
         'LockedOut' = $data.LockedOut
         'LogonCount' = $data.LogonCount
@@ -481,6 +478,8 @@ function ConvertTo-Name {
 #scope=universal/global/domain_local
 #builtin=tworzone przy starcie AD
 ##########################################################################################
+function Invoke-ADAudit
+{
 
 $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtable $graphFolders
 
@@ -582,11 +581,11 @@ $groups = Get-ADGroup -Filter * -Properties *
 
 $chart = $groups | Group-Object GroupCategory | Select-Object Name, Count
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup dystrybucyjnych/zabezpieczeń" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)" -Values $($chart[0].Count), $($chart[1].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
 
 $chart = $groups | Group-Object GroupScope | Select-Object Name, Count
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup lokalnych/globalnych/uniwersalnych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)", "$($chart[2].Name) - $($chart[2].Count)" -Values $($chart[0].Count), $($chart[1].Count), $($chart[2].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
@@ -686,18 +685,18 @@ Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading
 
 $chart = $userObjects | Group-Object Enabled | Select-Object Name, Count
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)" -Values $($chart[0].Count), $($chart[1].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
 
 #TEST
-$chart = $userObjects | Group-Object Office | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true
+$chart = $userObjects | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $userObjects.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true 
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 #TEST
-$chart = $userObjects | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+$chart = $userObjects | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres stanowisk w przekroju firmy" -Supress $true
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 #TEST
-$chart = $userObjects | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+$chart = $userObjects | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $userObjects.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres departamentów w przekroju firmy" -Supress $true
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 
@@ -789,6 +788,10 @@ foreach ($fgpp in $fgpps) {
 }
 #endregion FGPP###############################################################################################
 
+
+Get-ComputerInformation
 ##############################################################################################################
 Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
 Invoke-Item -Path $reportFilePath
+}
+Invoke-ADAudit
