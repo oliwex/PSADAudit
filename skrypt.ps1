@@ -337,18 +337,18 @@ function Get-GPOPolicy
     }
     $groupPolicyOutput
 }
-#TODO:
-function Get-GPOAcl {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [alias("GPOObject", "GroupPolicyObject")]
-        $groupPolicyObjectAcl
-    )
 
-    [xml]$xmlGPOReport = $groupPolicyObjectAcl.generatereport('xml')
+function Get-GPOAcl 
+{
+    $groupPolicyObjects=Get-GPO -Domain $($Env:USERDNSDOMAIN) -All 
+    
+    foreach ($groupPolicyObject in $groupPolicyObjects) 
+    {
+
+    [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
     
         #Output
-        $gpos=[PsCustomObject] @{
+        $object=[PsCustomObject] @{
             'Name' = $xmlGPOReport.GPO.Name
             'ACL' = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
                 New-Object -TypeName PSObject -Property @{
@@ -359,11 +359,10 @@ function Get-GPOAcl {
                 }
             }
         }
-        foreach ($gpo in $gpos.ACL)
-        {
-            Add-WordTable -WordDocument $reportFile -DataTable $gpo -Design ColorfulGridAccent5 -AutoFit Window -Transpose -Supress $true
-            Add-WordText -WordDocument $reportFile -Text "" -Supress $true
-        }
+        Add-WordTable -WordDocument $reportFile -DataTable $($object.ACL) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($object.Name) -Supress $true
+        Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    }
+
 }
 
 
@@ -753,7 +752,7 @@ foreach ($groupPolicyObject in $groupPolicyObjects)
     Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($groupPolicyObject.Name) -Supress $true
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Information" -Supress $true
-    Add-WordTable -WordDocument $reportFile -DataTable $gpoPolicyObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($groupPolicyObject.Name) -Transpose -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $groupPolicyObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($groupPolicyObject.Name) -Transpose -Supress $true
  
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Graph" -Supress $true
     
@@ -769,7 +768,8 @@ foreach ($groupPolicyObject in $groupPolicyObjects)
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Permissions" -Supress $true
     
     #ACL
-    Get-GPOAcl -GPOObject $groupPolicyObject
+    Get-GPOAcl
+
 }
 
 
@@ -786,6 +786,13 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Polisy grup nieprzypisane" -Supress $true
 $list = $($groupPolicyObjects | Where-Object { $_.Links.Count -eq 0 }).Name
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+Add-WordText -WordDocument $reportFile -Text "GroupPolicy Charts"  -HeadingType Heading2 -Supress $true
+#TEST
+$chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
 
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
@@ -821,6 +828,7 @@ foreach ($fgpp in $fgpps) {
 
 }
 #endregion FGPP###############################################################################################
+
 #TODO:ComputerReport
 #TODO: Flatten ACL
 
