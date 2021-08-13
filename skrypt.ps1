@@ -1,5 +1,4 @@
-﻿
-#TODO:Create unified function for table
+﻿#TODO:Create unified function for table
 #TODO:Create unified function for list
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
@@ -338,6 +337,7 @@ function Get-GPOPolicy
     }
     $groupPolicyOutput
 }
+#TODO:
 function Get-GPOAcl {
     Param(
         [Parameter(Mandatory = $true)]
@@ -346,20 +346,27 @@ function Get-GPOAcl {
     )
 
     [xml]$xmlGPOReport = $groupPolicyObjectAcl.generatereport('xml')
-
-    #Output
-    [PsCustomObject] @{
-        'Name' = $xmlGPOReport.GPO.Name
-        'ACLs' = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
-            New-Object -TypeName PSObject -Property @{
-                'User'            = $_.trustee.name.'#Text'
-                'Permission Type' = $_.type.PermissionType
-                'Inherited'       = $_.Inherited
-                'Permissions'     = $_.Standard.GPOGroupedAccessEnum
+    
+        #Output
+        $gpos=[PsCustomObject] @{
+            'Name' = $xmlGPOReport.GPO.Name
+            'ACL' = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
+                New-Object -TypeName PSObject -Property @{
+                    'User'            = $_.trustee.name.'#Text'
+                    'Permission Type' = $_.type.PermissionType
+                    'Inherited'       = $_.Inherited
+                    'Permissions'     = $_.Standard.GPOGroupedAccessEnum
+                }
             }
         }
-    }
+        foreach ($gpo in $gpos.ACL)
+        {
+            Add-WordTable -WordDocument $reportFile -DataTable $gpo -Design ColorfulGridAccent5 -AutoFit Window -Transpose -Supress $true
+            Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+        }
 }
+
+
 function Get-GraphImage {
     Param(
         [Parameter(Mandatory = $true)]
@@ -612,14 +619,14 @@ foreach ($group in $groupObjects)
 
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
-#TEST
-$chart = $groups | Group-Object GroupCategory | Select-Object Name, Count
+
+$chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup dystrybucyjnych/zabezpieczeń" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
-#TEST
-$chart = $groups | Group-Object GroupScope | Select-Object Name, Count
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
+$chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup lokalnych/globalnych/uniwersalnych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
@@ -669,7 +676,7 @@ foreach ($user in $users)
     #MemberOf
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
 
-    if ($null -eq $($usert.MemberOf)) {
+    if ($null -eq $($user.MemberOf)) {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
@@ -716,9 +723,9 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 
 Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading2 -Supress $true
 
-$chart = $users | Group-Object Enabled | Select-Object Name, Count
+$chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
 
 #TEST
 $chart = $users | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
@@ -741,32 +748,28 @@ Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się opis polis gru
 
 $groupPolicyObjects = Get-GPOPolicy
 
-foreach ($gpoPolicyObject in $groupPolicyObjects) 
+foreach ($groupPolicyObject in $groupPolicyObjects) 
 {
-    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($gpoPolicyObject.Name) -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($groupPolicyObject.Name) -Supress $true
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObject.Name) Information" -Supress $true
-    Add-WordTable -WordDocument $reportFile -DataTable $gpoPolicyObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($gpoPolicyObject.Name) -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $gpoPolicyObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($groupPolicyObject.Name) -Transpose -Supress $true
  
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObject.Name) Graph" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Graph" -Supress $true
     
-    if ($null -eq $($gpoPolicyObject.Links)) {
+    if ($null -eq $($groupPolicyObject.Links)) {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
     }
     else {
-        $linksTMP = ConvertTo-Name -ObjectList_DN $($gpoPolicyObject.Links)
-        $imagePath = Get-GraphImage -GraphRoot $($gpoPolicyObject.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
+        $linksTMP = ConvertTo-Name -ObjectList_DN $($groupPolicyObject.Links)
+        $imagePath = Get-GraphImage -GraphRoot $($groupPolicyObject.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObject.Name) Permissions" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($groupPolicyObject.Name) Permissions" -Supress $true
     
     #ACL
-    $gpoACL = $(Get-GPOAcl -GroupPolicyObject $gpoPolicyObject).ACLs
-    $gpoACL | ForEach-Object {
-        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -Supress $true -Transpose
-        Add-WordText -WordDocument $reportFile -Text "" -Supress $true
-    }
+    Get-GPOAcl -GPOObject $groupPolicyObject
 }
 
 
