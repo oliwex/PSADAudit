@@ -50,8 +50,8 @@ function Get-OUInformation
     }
 $ouOutput
 }
-
-function Get-OUACL {
+function Get-OUACL 
+{
     Param(
         [Parameter(Mandatory = $true)]
         [alias("OU_ACL", "OrganisationalUnitAccessControlList")]
@@ -130,7 +130,7 @@ function Get-USERInformation
             'DesktopProfile'                    = $data.DesktopProfile
             'Department'                        = $data.Department
             'Description'                       = $data.Description
-            'DirectReport'                      = $data.DirectReports
+        #    'DirectReport'                      = $data.DirectReports
             'DisplayName'                       = $data.DisplayName
             'DistinguishedName'                 = $data.DistinguishedName
             'Division'                          = $data.Division
@@ -283,11 +283,9 @@ $computerOutput
 
 function Get-GPOPolicy 
 {
-
    $groupPolicyObjects =  Get-GPO -Domain $($Env:USERDNSDOMAIN) -All 
    $groupPolicyOutput=foreach ($groupPolicyObject in $groupPolicyObjects)
    {
-
     [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
     #GPO version
     if (($xmlGPOReport.GPO.Computer.VersionDirectory -eq 0) -and ($xmlGPOReport.GPO.Computer.VersionSysvol -eq 0)) {
@@ -366,7 +364,8 @@ function Get-GPOAcl
 }
 
 
-function Get-GraphImage {
+function Get-GraphImage 
+{
     Param(
         [Parameter(Mandatory = $true)]
         [Alias("GraphRoot")]
@@ -393,8 +392,8 @@ function Get-GraphImage {
     $imagePath
 }
 #TODO:Analysis
-function Get-FineGrainedPolicies {
-
+function Get-FineGrainedPolicies 
+{
     $fineGrainedPoliciesData = Get-ADFineGrainedPasswordPolicy -Filter * -Server $($Env:USERDNSDOMAIN)
     $fineGrainedPolicies = foreach ($policy in $fineGrainedPoliciesData) {
         [PsCustomObject] @{
@@ -832,7 +831,50 @@ foreach ($fgpp in $fgpps) {
 #TODO:ComputerReport
 #TODO: Flatten ACL
 
-#Get-ComputerInformation
+$computers=Get-ComputerInformation
+foreach ($computer in $computers)
+{
+        Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($computer.Name) -Supress $true
+    
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) Information" -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $computer -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($computer.Name) -Transpose -Supress $true
+        
+        #MemberOf
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
+
+        if ($null -eq $($computer.MemberOf)) {
+            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        }
+        else {
+            $memberOfTMP = ConvertTo-Name -ObjectList_DN $($computer.MemberOf)
+            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) DirectManager" -Supress $true 
+
+        if ($null -eq $($user.ManagedBy)) {
+            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        }
+        else {
+            $managerTMP = ConvertTo-Name -ObjectList_DN $($computer.ManagedBy)
+            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+}
+    Add-WordText -WordDocument $reportFile -Text "Users Table"  -HeadingType Heading2 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych komputerów" -Supress $true
+    $list = $($($computers | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych komputerów" -Supress $true
+    $list = $($($computers | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
 ##############################################################################################################
 Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
 Invoke-Item -Path $reportFilePath
