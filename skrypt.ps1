@@ -10,6 +10,7 @@ $graphFolders = @{
     FGPP  = "FGPP_Graph\"
     GROUP = "GROUP_Graph\"
     USERS = "USERS_Graph\"
+    COMPUTERS = "COMPUTERS_Graph\"
 }
 ##########################################################################################
 function Get-OUInformation 
@@ -205,7 +206,7 @@ function Get-USERInformation
 function Get-ComputerInformation 
 {
     $computerData = Get-ADComputer -Filter * -Properties *
-    $computerOutput = foreach ($data in $userData) 
+    $computerOutput = foreach ($data in $computerData) 
     {
     #AccountExpires,
     [PSCustomObject] @{
@@ -830,7 +831,7 @@ foreach ($fgpp in $fgpps) {
 
 #TODO:ComputerReport
 #TODO: Flatten ACL
-
+#region COMPUTERS#############################################################################################
 $computers=Get-ComputerInformation
 foreach ($computer in $computers)
 {
@@ -840,31 +841,41 @@ foreach ($computer in $computers)
         Add-WordTable -WordDocument $reportFile -DataTable $computer -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($computer.Name) -Transpose -Supress $true
         
         #MemberOf
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) MemberOfGroup Graph" -Supress $true 
 
         if ($null -eq $($computer.MemberOf)) {
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
             $memberOfTMP = ConvertTo-Name -ObjectList_DN $($computer.MemberOf)
-            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
         #ManagedBy
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) DirectManager" -Supress $true 
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) ManagedBy" -Supress $true 
 
-        if ($null -eq $($user.ManagedBy)) {
+        if ($null -eq $($computer.ManagedBy)) {
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
             $managerTMP = ConvertTo-Name -ObjectList_DN $($computer.ManagedBy)
-            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
 }
-    Add-WordText -WordDocument $reportFile -Text "Users Table"  -HeadingType Heading2 -Supress $true
+    #TEST
+    Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
+    $table = $($computers | Select-Object DNSHostName, IP4, IP6)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    
     Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych komputerów" -Supress $true
@@ -875,6 +886,7 @@ foreach ($computer in $computers)
     $list = $($($computers | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).ComputerName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
+#endregion COMPUTERS##########################################################################################
 ##############################################################################################################
 Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
 Invoke-Item -Path $reportFilePath
