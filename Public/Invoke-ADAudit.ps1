@@ -1,5 +1,4 @@
-﻿
-#TODO:Create unified function for table
+﻿#TODO:Create unified function for table
 #TODO:Create unified function for list
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
@@ -11,18 +10,15 @@ $graphFolders = @{
     FGPP  = "FGPP_Graph\"
     GROUP = "GROUP_Graph\"
     USERS = "USERS_Graph\"
+    COMPUTERS = "COMPUTERS_Graph\"
 }
 ##########################################################################################
-function Get-OUInformation {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [alias("OU_DN", "OrganisationalUnitDistinguishedName")]
-        [String] $ouPath
-    )
+function Get-OUInformation 
+{
+    $ouData = Get-ADOrganizationalUnit -Filter * -Properties * 
 
-    $data = Get-ADOrganizationalUnit -Filter * -Properties * -SearchBase $ouPath -SearchScope 0
-
-
+    $ouOutput = foreach ($data in $ouData) 
+    {
     [PSCustomObject] @{
         'CanonicalName'                   = $data.CanonicalName
         'City'                            = $data.City
@@ -52,8 +48,11 @@ function Get-OUInformation {
         'WhenChanged'                     = $data.whenChanged
         'WhenCreated'                     = $data.whenCreated
     }
+    }
+$ouOutput
 }
-function Get-OUACL {
+function Get-OUACL 
+{
     Param(
         [Parameter(Mandatory = $true)]
         [alias("OU_ACL", "OrganisationalUnitAccessControlList")]
@@ -75,14 +74,11 @@ function Get-OUACL {
         'ACLs'                       = $acls
     }
 }
-function Get-GROUPInformation {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [alias("Group_DN", "GroupDistinguishedName")]
-        [String] $groupPath
-    )
-    $data = Get-ADGroup -Filter * -Properties * -SearchBase $groupPath -SearchScope 0
-
+function Get-GROUPInformation 
+{
+    $groupData = Get-ADGroup -Filter * -Properties *
+    $groupOutput = foreach ($data in $groupData) 
+    {
     [PSCustomObject] @{
         'CanonicalName'                   = $data.CanonicalName
         'Common Name'                     = $data.cn
@@ -110,34 +106,12 @@ function Get-GROUPInformation {
         'USNCreated'                      = $data.uSNCreated
         'WhenChanged'                     = $data.whenChanged
         'WhenCreated'                     = $data.whenCreated
-    }
-}
-function Add-GroupInformation {
-    Param(
-        [Parameter(Mandatory = $true)]
-        $groupObject
-    )
-    foreach ($group in $groupObject) {
-        $groupInformation = Get-GROUPInformation -GroupDistinguishedName $($group.DistinguishedName)
-
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
-    
-        Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $groupInformation -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
-    
-        Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
-
-        if ($null -eq $($groupInformation.Members)) {
-            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
-        }
-        else {
-            $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($groupInformation.Members)
-            $imagePath = Get-GraphImage -GraphRoot $($groupInformation.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
-            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
     }
+    $groupOutput
 }
-function Get-USERInformation {
+function Get-USERInformation 
+{
     $userData = Get-ADUser -Filter * -Properties *
     $userOutput = foreach ($data in $userData) {
         [PSCustomObject] @{
@@ -146,7 +120,6 @@ function Get-USERInformation {
             'AccountNotDelegated'               = $data.AccountNotDelegated
             'AllowReversiblePasswordEncryption' = $data.AllowReversiblePasswordEncryption
             'BadLogonCount'                     = $data.BadLogonCount
-            #   'BadPasswordCount'                  = $data.BadPasswordCount
             'CannotChangePassword'              = $data.CannotChangePassword
             'CanonicalName'                     = $data.CanonicalName
             'Certificates'                      = $data.Certificates
@@ -154,13 +127,11 @@ function Get-USERInformation {
             'City'                              = $data.City
             'CommonName'                        = $data.cn
             'Company'                           = $data.Company
-            #    'Comment'                           = $data.Comment
             'Country'                           = $data.Country
-            #    'CountryCode'                       = $data.CountryCode 
             'DesktopProfile'                    = $data.DesktopProfile
             'Department'                        = $data.Department
             'Description'                       = $data.Description
-            #    'DirectReport'                      = $data.DirectReports
+        #    'DirectReport'                      = $data.DirectReports
             'DisplayName'                       = $data.DisplayName
             'DistinguishedName'                 = $data.DistinguishedName
             'Division'                          = $data.Division
@@ -183,7 +154,7 @@ function Get-USERInformation {
             'LastLogOff'                        = $data.LastLogOff
             'LastLogonDate'                     = $data.LastLogonDate
             'LockedOut'                         = $data.LockedOut
-            #  'LockoutTime'                       = $data.LockoutTime
+              'LockoutTime'                       = $data.LockoutTime
             'LogonHours'                        = $data.LogonHours
             'LogonWorkstations'                 = $data.LogonWorkstations
             'Manager'                           = $data.Manager
@@ -232,11 +203,11 @@ function Get-USERInformation {
 }
 
 #TEST
-function Get-ComputerInformation {
-
-
+function Get-ComputerInformation 
+{
     $computerData = Get-ADComputer -Filter * -Properties *
-    $computerOutput = foreach ($data in $userData) {
+    $computerOutput = foreach ($data in $computerData) 
+    {
     #AccountExpires,
     [PSCustomObject] @{
         'AccountExpirationDate' = $data.AccountExpirationDate
@@ -251,7 +222,7 @@ function Get-ComputerInformation {
         'Certificates' = $data.Certificates
         'CommonName' = $data.CommonName
         'CodePage' = $data.codepage
-        #'CountryCode' = $data.CountryCode
+            'CountryCode' = $data.CountryCode
         'Description' = $data.Description
         'DisplayName' = $data.DisplayName
         'DistinguishedName' = $data.DistinguishedName
@@ -264,11 +235,11 @@ function Get-ComputerInformation {
         'IP4' = $data.IPv4Address
         'IP6' = $data.IPv6Address
         'IsCriticalSystemObject' = $data.isCriticalSystemObject
-        'KerberosEncryptionType' = $data.KerberosEncryptionType
+        'KerberosEncryptionType' = $data."msDS-SupportedEncryptionTypes"
         'LastBadPasswordAttempt' = $data.LastBadPasswordAttempt
         'LastKnownParent' = $data.LastKnownParent
         'LastLogonDate' = $data.LastLogonDate
-        #'LocalPolicyFlags' = $data.LocalPolicyFlags
+            'LocalPolicyFlags' = $data.LocalPolicyFlags
         'Location' = $data.Location
         'LockedOut' = $data.LockedOut
         'LogonCount' = $data.LogonCount
@@ -311,14 +282,15 @@ function Get-ComputerInformation {
 $computerOutput 
 }
 
-function Get-GPOPolicy {
+function Get-GPOPolicy 
+{
     Param(
         [Parameter(Mandatory = $true)]
-        [alias("GPOObject", "GroupPolicyObject")]
-        $groupPolicyObjectInformation
+        [Alias("GPO_Object")]
+        $groupPolicyObject
     )
-
-    [xml]$xmlGPOReport = $groupPolicyObjectInformation.generatereport('xml')
+   
+    [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
     #GPO version
     if (($xmlGPOReport.GPO.Computer.VersionDirectory -eq 0) -and ($xmlGPOReport.GPO.Computer.VersionSysvol -eq 0)) {
         $computerSettings = "NeverModified"
@@ -356,28 +328,30 @@ function Get-GPOPolicy {
         'ComputerEnabled'      = $xmlGPOReport.GPO.Computer.Enabled
         'ComputerSettings'     = $computerSettings
         'UserSettings'         = $userSettings
-        'GpoStatus'            = $groupPolicyObjectInformation.GpoStatus
-        'CreationTime'         = $groupPolicyObjectInformation.CreationTime
-        'ModificationTime'     = $groupPolicyObjectInformation.ModificationTime
-        'WMIFilter'            = $groupPolicyObjectInformation.WmiFilter.name
-        'WMIFilterDescription' = $groupPolicyObjectInformation.WmiFilter.Description
-        'Path'                 = $groupPolicyObjectInformation.Path
-        'GUID'                 = $groupPolicyObjectInformation.Id
+        'GpoStatus'            = $groupPolicyObject.GpoStatus
+        'CreationTime'         = $groupPolicyObject.CreationTime
+        'ModificationTime'     = $groupPolicyObject.ModificationTime
+        'WMIFilter'            = $groupPolicyObject.WmiFilter.name
+        'WMIFilterDescription' = $groupPolicyObject.WmiFilter.Description
+        'Path'                 = $groupPolicyObject.Path
+        'GUID'                 = $groupPolicyObject.Id
     }
+
 }
-function Get-GPOAcl {
+
+function Get-GPOAcl 
+{
     Param(
         [Parameter(Mandatory = $true)]
-        [alias("GPOObject", "GroupPolicyObject")]
-        $groupPolicyObjectAcl
+        [Alias("GroupPolicy")]
+        $groupPolicyObject
     )
-
-    [xml]$xmlGPOReport = $groupPolicyObjectAcl.generatereport('xml')
-
+    [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
+    
     #Output
     [PsCustomObject] @{
         'Name' = $xmlGPOReport.GPO.Name
-        'ACLs' = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
+        'ACL'  = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
             New-Object -TypeName PSObject -Property @{
                 'User'            = $_.trustee.name.'#Text'
                 'Permission Type' = $_.type.PermissionType
@@ -387,7 +361,10 @@ function Get-GPOAcl {
         }
     }
 }
-function Get-GraphImage {
+
+
+function Get-GraphImage 
+{
     Param(
         [Parameter(Mandatory = $true)]
         [Alias("GraphRoot")]
@@ -414,8 +391,8 @@ function Get-GraphImage {
     $imagePath
 }
 #TODO:Analysis
-function Get-FineGrainedPolicies {
-
+function Get-FineGrainedPolicies 
+{
     $fineGrainedPoliciesData = Get-ADFineGrainedPasswordPolicy -Filter * -Server $($Env:USERDNSDOMAIN)
     $fineGrainedPolicies = foreach ($policy in $fineGrainedPoliciesData) {
         [PsCustomObject] @{
@@ -505,15 +482,13 @@ Add-WordPageBreak -WordDocument $reportFile -Supress $true
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis jednostek organizacyjnych' -Supress $true
 Add-WordText -WordDocument $reportFile -Text 'Ta część zawiera spis jednostek organizacyjnych wraz z informacjami o każdej z nich' -Supress $True
 
-$ous = (Get-ADOrganizationalUnit -Filter "*" -Properties "*")
-foreach ($ou in $ous) {
-   
-    $ouInformation = Get-OUInformation -OrganisationalUnitDistinguishedName $($ou.DistinguishedName)
-    
+$ous = Get-OUInformation
+foreach ($ou in $ous) 
+{
     Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($ou.Name) -Supress $true
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Informtion" -Supress $true
-    Add-WordTable -WordDocument $reportFile -DataTable $ouInformation -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($ou.Name)  -Supress $True
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $ou -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($ou.Name) -Transpose  -Supress $True
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Graph" -Supress $true 
 
@@ -534,7 +509,7 @@ foreach ($ou in $ous) {
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     
     $($ouACL.ACLs) | ForEach-Object {
-        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "$($($_).IdentityReference) Permissions" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     }
 }
@@ -560,35 +535,95 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 Add-WordText -WordDocument $reportFile -Text 'Spis Grup' -HeadingType Heading1 -Supress $true
 Add-WordText -WordDocument $reportFile -Text 'Jest to dokumentacja domeny ActiveDirectory przeprowadzona w domena.local. Wszytskie informacje są tajne' -Supress $True 
 
-$groupObject = [PsCustomObject] @{
-    "DomainLocal"  = Get-ADGroup -Filter { GroupType -band 1 } -Properties *
-    "Security"     = Get-ADGroup -Filter { (-not(GroupType -band 1)) -and (GroupCategory -eq "Security") } -Properties *
-    "Distribution" = Get-ADGroup -Filter { GroupCategory -eq "Distribution" } -Properties *
-}
-
+$groups = Get-GROUPInformation
 
 Add-WordText -WordDocument $reportFile -Text "DomainLocal groups"  -HeadingType Heading2 -Supress $true
 
-Add-GroupInformation -groupObject $($groupObject.DomainLocal)
+$groupObjects=$groups | Where-Object {$_.GroupType -band 1 }
+
+foreach ($group in $groupObjects) 
+{
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
+
+    if ($null -eq $($group.Members)) 
+    {
+        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+    }
+    else 
+    {
+        $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
+        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
+        Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+    }
+}
+
 
 Add-WordText -WordDocument $reportFile -Text "Security Groups"  -HeadingType Heading2 -Supress $true
 
-Add-GroupInformation -groupObject $($groupObject.Security)
+$groupObjects=$groups | Where-Object { (-not($_.GroupType -band 1)) -and ($_.GroupCategory -eq "Security") }
+ 
+foreach ($group in $groupObjects) 
+{
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
+
+    if ($null -eq $($group.Members)) 
+    {
+        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+    }
+    else 
+    {
+        $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
+        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
+        Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+    }
+}
+
 
 Add-WordText -WordDocument $reportFile -Text "Distribution Groups"  -HeadingType Heading2 -Supress $true
 
-Add-GroupInformation -groupObject $($groupObject.Distribution)
+$groupObjects=$groups | Where-Object {$_.GroupCategory -eq "Distribution" }
+ 
+foreach ($group in $groupObjects) 
+{
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
+
+    if ($null -eq $($group.Members)) 
+    {
+        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+    }
+    else 
+    {
+        $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
+        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
+        Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+    }
+}
 
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
-$groups = Get-ADGroup -Filter * -Properties *
 
-$chart = $groups | Group-Object GroupCategory | Select-Object Name, Count
+
+$chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup dystrybucyjnych/zabezpieczeń" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)" -Values $($chart[0].Count), $($chart[1].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
 
-$chart = $groups | Group-Object GroupScope | Select-Object Name, Count
+$chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup lokalnych/globalnych/uniwersalnych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)", "$($chart[2].Name) - $($chart[2].Count)" -Values $($chart[0].Count), $($chart[1].Count), $($chart[2].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
@@ -626,37 +661,36 @@ Add-WordTable -WordDocument $reportFile -DataTable $groupTable -Design ColorfulG
 Add-WordText -WordDocument $reportFile -Text 'Spis Użytkowników' -HeadingType Heading1 -Supress $true
 Add-WordText -WordDocument $reportFile -Text 'Ta część zawiera spis użytkowników domeny' -Supress $True 
 
-$userObjects = Get-USERInformation
+$users = Get-USERInformation
 
-foreach ($userObject in $userObjects) {
-    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($userObject.Name) -Supress $true
+foreach ($user in $users) 
+{
+    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($user.Name) -Supress $true
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($userObject.Name) Information" -Supress $true
-    Add-WordTable -WordDocument $reportFile -DataTable $userObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($userObject.Name) -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $user -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($user.Name) -Transpose -Supress $true
  
-
-
     #MemberOf
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($userObject.Name) MemberOfGroup Graph" -Supress $true 
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
 
-    if ($null -eq $($userObject.MemberOf)) {
+    if ($null -eq $($user.MemberOf)) {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $memberOfTMP = ConvertTo-Name -ObjectList_DN $($userObject.MemberOf)
-        $imagePath = Get-GraphImage -GraphRoot $($userObject.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+        $memberOfTMP = ConvertTo-Name -ObjectList_DN $($user.MemberOf)
+        $imagePath = Get-GraphImage -GraphRoot $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
     #Manager
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($userObject.Name) DirectManager" -Supress $true 
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) DirectManager" -Supress $true 
 
-    if ($null -eq $($userObject.Manager)) {
+    if ($null -eq $($user.Manager)) {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $managerTMP = ConvertTo-Name -ObjectList_DN $($userObject.Manager)
-        $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($userObject.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
+        $managerTMP = ConvertTo-Name -ObjectList_DN $($user.Manager)
+        $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($user.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
@@ -667,39 +701,39 @@ foreach ($userObject in $userObjects) {
 Add-WordText -WordDocument $reportFile -Text "Users Table"  -HeadingType Heading2 -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Tabela lokalizacji użytkowników"  -HeadingType Heading3 -Supress $true
-$table = $($userObjects | Select-Object Name, Department, City, Country)
+$table = $($users | Select-Object Name, Department, City, Country)
 Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa"  -HeadingType Heading3 -Supress $true
-$table = $($userObjects | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
+$table = $($users | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
 Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Users Lists"  -HeadingType Heading2 -Supress $true
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych użytkowników" -Supress $true
-$list = $($($userObjects | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).UserName
+$list = $($($users | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).UserName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych użytkowników" -Supress $true
-$list = $($($userObjects | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).UserName
+$list = $($($users | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).UserName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading2 -Supress $true
 
-$chart = $userObjects | Group-Object Enabled | Select-Object Name, Count
+$chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names "$($chart[0].Name) - $($chart[0].Count)", "$($chart[1].Name) - $($chart[1].Count)" -Values $($chart[0].Count), $($chart[1].Count) -BarDirection Column
+Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
 
 #TEST
-$chart = $userObjects | Group-Object Office | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true
+$chart = $users | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true 
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 #TEST
-$chart = $userObjects | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+$chart = $users | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres stanowisk w przekroju firmy" -Supress $true
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 #TEST
-$chart = $userObjects | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $userObjects.Count) * 100), 2) } } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
+$chart = $users | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres departamentów w przekroju firmy" -Supress $true
 Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
 
@@ -711,57 +745,65 @@ Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się opis polis gru
 
 $groupPolicyObjects = Get-GPO -Domain $($Env:USERDNSDOMAIN) -All 
 
-$groupPolicyObjectList = foreach ($gpoPolicyObject in $groupPolicyObjects) {
-    $gpoPolicyObjectInformation = Get-GPOPolicy -GroupPolicyObject $gpoPolicyObject
+$groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects) 
+{
+    $gpoObject = Get-GPOPolicy -GroupPolicy $groupPolicyObject
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($gpoPolicyObjectInformation.Name) -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($gpoObject.Name) -Supress $true
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObjectInformation.Name) Information" -Supress $true
-    Add-WordTable -WordDocument $reportFile -DataTable $gpoPolicyObjectInformation -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($gpoPolicyObjectInformation.Name) -Transpose -Supress $true
- 
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObjectInformation.Name) Graph" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Information" -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $gpoObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($gpoObject.Name) -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Graph" -Supress $true
     
-    if ($null -eq $($gpoPolicyObjectInformation.Links)) {
+    if ($null -eq $($gpoObject.Links)) 
+    {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
     }
-    else {
-        $linksTMP = ConvertTo-Name -ObjectList_DN $($gpoPolicyObjectInformation.Links)
-        $imagePath = Get-GraphImage -GraphRoot $($gpoPolicyObjectInformation.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
+    else 
+    {
+        $linksTMP = ConvertTo-Name -ObjectList_DN $($gpoObject.Links)
+        $imagePath = Get-GraphImage -GraphRoot $($gpoObject.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
-
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoPolicyObjectInformation.Name) Permissions" -Supress $true
     
     #ACL
-    $gpoACL = $(Get-GPOAcl -GroupPolicyObject $gpoPolicyObject).ACLs
-    $gpoACL | ForEach-Object {
-        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -Supress $true -Transpose
-        Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Permissions" -Supress $true
+    $gpoObjectACL = Get-GPOAcl -GroupPolicy $groupPolicyObject
+    
+    $gpoObjectACL.ACL | ForEach-Object {
+        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions" -Transpose -Supress $true
+        Add-WordText -WordDocument $reportFile -Text "" -Supress $true 
     }
-    $gpoPolicyObjectInformation
+    
+    $gpoObject
 }
 
 
 Add-WordText -WordDocument $reportFile -Text "Group Policy Lists"  -HeadingType Heading2 -Supress $true 
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych jednostek organizacyjnych" -Supress $true
-$list = $($($groupPolicyObjectList | Select-Object ModificationTime, Name | Sort-Object -Descending ModificationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.ModificationTime)" } }).GPOName
+$list = $($($groupPolicyObjectsList | Select-Object ModificationTime, Name | Sort-Object -Descending ModificationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.ModificationTime)" } }).GPOName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych polis grup" -Supress $true
-$list = $($($groupPolicyObjectList | Select-Object CreationTime, Name | Sort-Object -Descending CreationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.CreationTime)" } }).GPOName
+$list = $($($groupPolicyObjectsList | Select-Object CreationTime, Name | Sort-Object -Descending CreationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.CreationTime)" } }).GPOName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Polisy grup nieprzypisane" -Supress $true
-$list = $($groupPolicyObjectList | Where-Object { $_.Links.Count -eq 0 }).Name
+$list = $($groupPolicyObjectsList | Where-Object { $_.Links.Count -eq 0 }).Name
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Tabela polis grup"  -HeadingType Heading3 -Supress $true
-$gpoTable = $($groupPolicyObjectList | Select-Object Name, HasComputerSettings, HasUserSettings, UserEnabled, ComputerEnabled, ComputerSettings, UserSettings)
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled, ComputerSettings, UserSettings)
+Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name,ComputerSettings, UserSettings)
+Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 #endregion GPO################################################################################################
 
 #region FGPP##################################################################################################
@@ -791,7 +833,116 @@ foreach ($fgpp in $fgpps) {
 }
 #endregion FGPP###############################################################################################
 
+#TODO:ComputerReport
+#TODO: Flatten ACL
+#region COMPUTERS#############################################################################################
+
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Komputerów' -Supress $true
+Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się spis komputerów' -Supress $True
+
+$computers=Get-ComputerInformation
+foreach ($computer in $computers)
+{
+        Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($computer.Name) -Supress $true
+    
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) Information" -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $computer -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($computer.Name) -Transpose -Supress $true
+        
+        #MemberOf
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) MemberOfGroup Graph" -Supress $true 
+
+        if ($null -eq $($computer.MemberOf)) {
+            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        }
+        else {
+            $memberOfTMP = ConvertTo-Name -ObjectList_DN $($computer.MemberOf)
+            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) ManagedBy" -Supress $true 
+
+        if ($null -eq $($computer.ManagedBy)) {
+            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        }
+        else {
+            $managerTMP = ConvertTo-Name -ObjectList_DN $($computer.ManagedBy)
+            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+}
+    #TEST
+    Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
+    $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 1"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name,Enabled,LockedOut,PasswordExpired)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 2"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 3"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 4"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+
+
+    
+    Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
+    
+    $chart = $computers | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont komputerów wyłączonych/włączonych" -Supress $true
+    Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont komputerów wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
+    $chart = $computers | Group-Object OperatingSystem | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku systemów operacyjnych" -Supress $true
+    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek rodzajów systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    
+    $chart = $computers | Group-Object OperatingSystemVersion | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku  wersji systemów operacyjnych" -Supress $true
+    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek wersji systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    
+    #TEST
+    $chart = $computers | Group-Object LogonCount | Select-Object Name, @{Name="Values";Expression={$_.Count}} | Select-Object -First 5
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy najczęściej logujących się komputerów" -Supress $true
+    Add-WordBarChart -WordDocument $reportFile -ChartName 'Wykres najczęściej logujących się komputerów'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
+    #TODO:LocalPolicyFlags - sprawdzic w pracy
+
+    Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 logujących się komputerów" -Supress $true
+    $list = $($($computers | Select-Object LastLogonDate, Name | Sort-Object -Descending LastLogonDate | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.LastLogonDate)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych haseł komputerów" -Supress $true
+    $list = $($($computers | Select-Object PasswordLastSet, Name | Sort-Object -Descending PasswordLastSet | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.PasswordLastSet)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych komputerów" -Supress $true
+    $list = $($($computers | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych komputerów" -Supress $true
+    $list = $($($computers | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+#endregion COMPUTERS##########################################################################################
 ##############################################################################################################
 Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
 Invoke-Item -Path $reportFilePath
 }
+Invoke-ADAudit
+
+#TODO:Standardy wykonania wykresów i tabel
