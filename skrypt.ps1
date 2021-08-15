@@ -202,7 +202,7 @@ function Get-USERInformation
     $userOutput
 }
 
-#TEST
+
 function Get-ComputerInformation 
 {
     $computerData = Get-ADComputer -Filter * -Properties *
@@ -235,7 +235,7 @@ function Get-ComputerInformation
         'IP4' = $data.IPv4Address
         'IP6' = $data.IPv6Address
         'IsCriticalSystemObject' = $data.isCriticalSystemObject
-        'KerberosEncryptionType' = $data.KerberosEncryptionType
+        'KerberosEncryptionType' = $data."msDS-SupportedEncryptionTypes"
         'LastBadPasswordAttempt' = $data.LastBadPasswordAttempt
         'LastKnownParent' = $data.LastKnownParent
         'LastLogonDate' = $data.LastLogonDate
@@ -833,9 +833,11 @@ foreach ($fgpp in $fgpps) {
 }
 #endregion FGPP###############################################################################################
 
-#TODO:ComputerReport
-#TODO: Flatten ACL
 #region COMPUTERS#############################################################################################
+
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Komputerów' -Supress $true
+Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się spis komputerów' -Supress $True
+
 $computers=Get-ComputerInformation
 foreach ($computer in $computers)
 {
@@ -873,14 +875,58 @@ foreach ($computer in $computers)
     Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
     
     Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
-    $table = $($computers | Select-Object DNSHostName, IP4, IP6)
+    $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
-    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 1"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name,Enabled,LockedOut,PasswordExpired)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 2"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
     
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 3"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 4"  -HeadingType Heading3 -Supress $true
+    $table = $($users | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
+
+
+    
+    Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
+    
+    $chart = $computers | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont komputerów wyłączonych/włączonych" -Supress $true
+    Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont komputerów wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
+    $chart = $computers | Group-Object OperatingSystem | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku systemów operacyjnych" -Supress $true
+    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek rodzajów systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    
+    $chart = $computers | Group-Object OperatingSystemVersion | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku  wersji systemów operacyjnych" -Supress $true
+    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek wersji systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    
+    #TEST
+    $chart = $computers | Group-Object LogonCount | Select-Object Name, @{Name="Values";Expression={$_.Count}} | Select-Object -First 5
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy najczęściej logujących się komputerów" -Supress $true
+    Add-WordBarChart -WordDocument $reportFile -ChartName 'Wykres najczęściej logujących się komputerów'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+
+    #TODO:LocalPolicyFlags - sprawdzic w pracy
+
     Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
+    
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 logujących się komputerów" -Supress $true
+    $list = $($($computers | Select-Object LastLogonDate, Name | Sort-Object -Descending LastLogonDate | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.LastLogonDate)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych haseł komputerów" -Supress $true
+    $list = $($($computers | Select-Object PasswordLastSet, Name | Sort-Object -Descending PasswordLastSet | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.PasswordLastSet)" } }).ComputerName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych komputerów" -Supress $true
     $list = $($($computers | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).ComputerName
@@ -896,3 +942,5 @@ Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDo
 Invoke-Item -Path $reportFilePath
 }
 Invoke-ADAudit
+
+#TODO:Standardy wykonania wykresów i tabel
