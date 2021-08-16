@@ -450,6 +450,36 @@ function ConvertTo-Name {
     }
     $namesList
 }
+function Add-WordChart
+{
+Param(
+        [Parameter(Mandatory = $true)]
+        [alias("CType")]
+        [ValidateSet("Piechart","Barchart")]
+        [String] $chartType,
+        [Parameter(Mandatory = $true)]
+        [alias("CData")]
+        $chartData,
+        [Parameter(Mandatory = $true)]
+        [alias("STitle")]
+        [String] $sectionTitle,
+        [Parameter(Mandatory = $true)]
+        [alias("CTitle")]
+        [String] $chartTitle
+
+    )
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $sectionTitle -Supress $true
+    [array] $Names = foreach ($nameTMP in $chartData) {"$($nameTMP.Name) - [$($nameTMP.Values)]"
+    }
+    if ($chartType -like "*PieChart*")
+    {    
+        Add-WordPieChart -WordDocument $reportFile -ChartName $chartTitle -ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $Names -Values $([array]$chartData.Values)
+    }
+    else
+    {
+        Add-WordBarChart -WordDocument $reportFile -ChartName $chartTitle -ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $Names -Values $([array]$chartData.Values) -BarDirection Column   
+    }
+}
 ##########################################################################################
 #NOTES
 ####
@@ -588,7 +618,6 @@ foreach ($group in $groupObjects)
     }
 }
 
-
 Add-WordText -WordDocument $reportFile -Text "Distribution Groups"  -HeadingType Heading2 -Supress $true
 
 $groupObjects=$groups | Where-Object {$_.GroupCategory -eq "Distribution" }
@@ -616,14 +645,11 @@ foreach ($group in $groupObjects)
 
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
-
 $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup dystrybucyjnych/zabezpieczeń" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup dystrybucyjnych/zabezpieczeń" -CTitle "Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych"
 
 $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup lokalnych/globalnych/uniwersalnych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup lokalnych/globalnych/uniwersalnych" -CTitle "Stosunek liczby grup lokalnych, globalnych,uniwersalnych"
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
@@ -721,21 +747,16 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading2 -Supress $true
 
 $chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont wyłączonych/włączonych" -CTitle "Stosunek liczby kont wyłączonych i włączonych"
 
-#TEST
 $chart = $users | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true 
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
-#TEST
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres biur w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+
 $chart = $users | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres stanowisk w przekroju firmy" -Supress $true
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
-#TEST
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres stanowisk w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+
 $chart = $users | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres departamentów w przekroju firmy" -Supress $true
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres departamentów w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
 
 #endregion USERS#####################################################################################################
 
@@ -795,15 +816,18 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -Text "Tabela polis grup"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 1"  -HeadingType Heading3 -Supress $true
 $gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
+Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 2"  -HeadingType Heading3 -Supress $true
 $gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled, ComputerSettings, UserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
-
+    
+Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 3"  -HeadingType Heading3 -Supress $true
 $gpoTable = $($groupPolicyObjectsList | Select-Object Name,ComputerSettings, UserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+
 #endregion GPO################################################################################################
 
 #region FGPP##################################################################################################
@@ -871,51 +895,46 @@ foreach ($computer in $computers)
         }
 
 }
-    #TEST
+    
     Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
     
     Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
+
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 1"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name,Enabled,LockedOut,PasswordExpired)
+    $table = $($computers | Select-Object Name,Enabled,LockedOut,PasswordExpired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
 
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 2"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
+    $table = $($computers | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
     
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 3"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
+    $table = $($computers | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
-    
+
+
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 4"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
+    $table = $($computers | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
-
-
-    
     Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
     
     $chart = $computers | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont komputerów wyłączonych/włączonych" -Supress $true
-    Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont komputerów wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
-
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont komputerów wyłączonych/włączonych" -CTitle "Stosunek liczby kont komputerów wyłączonych i włączonych"
+    
     $chart = $computers | Group-Object OperatingSystem | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku systemów operacyjnych" -Supress $true
-    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek rodzajów systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku systemów operacyjnych" -CTitle "Stosunek rodzajów systemów operacyjnych"
     
     $chart = $computers | Group-Object OperatingSystemVersion | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku  wersji systemów operacyjnych" -Supress $true
-    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek wersji systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku  wersji systemów operacyjnych" -CTitle "Stosunek wersji systemów operacyjnych"
     
-    #TEST
-    $chart = $computers | Group-Object LogonCount | Select-Object Name, @{Name="Values";Expression={$_.Count}} | Select-Object -First 5
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy najczęściej logujących się komputerów" -Supress $true
-    Add-WordBarChart -WordDocument $reportFile -ChartName 'Wykres najczęściej logujących się komputerów'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
-
+    $chart = $computers | Select-Object Name,@{Name="Values";Expression={$_.LogonCount}} | Sort-Object -Descending Values |Select-Object -First 10
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy najczęściej logujących się komputerów" -CTitle "Wykres najczęściej logujących się komputerów"
     #TODO:LocalPolicyFlags - sprawdzic w pracy
 
     Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
