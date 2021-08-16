@@ -1,5 +1,9 @@
-﻿#TODO:Create unified function for table
-#TODO:Create unified function for list
+﻿#TODO:GPO ACL edit to create better table
+#TODO: Create ACL based on ADSI edit properties
+#TODO: Big graph representing full company/representing OU structure?
+#TODO: redesign graph functions to create 3 levels graphs
+#TODO: graph representing boss->employess and boss ->boss
+#TODO:OU permissions ograniczyć i przekształcić tabelę
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
 ##########################################################################################
@@ -817,17 +821,13 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 1"  -HeadingType Heading3 -Supress $true
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings)
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings, ComputerSettings, UserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
 Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 2"  -HeadingType Heading3 -Supress $true
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled, ComputerSettings, UserSettings)
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
     
-Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 3"  -HeadingType Heading3 -Supress $true
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name,ComputerSettings, UserSettings)
-Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
-
 #endregion GPO################################################################################################
 
 #region FGPP##################################################################################################
