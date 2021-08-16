@@ -1,5 +1,9 @@
-﻿#TODO:Create unified function for table
-#TODO:Create unified function for list
+﻿#TODO: GPO ACL edit to create better table
+#TODO: Create ACL based on ADSI edit properties
+#TODO: Big graph representing full company/representing OU structure?
+#TODO: redesign graph functions to create 3 levels graphs
+#TODO: graph representing boss->employess and boss ->boss
+#TODO: OU permissions ograniczyć i przekształcić tabelę
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
 ##########################################################################################
@@ -12,444 +16,7 @@ $graphFolders = @{
     USERS = "USERS_Graph\"
     COMPUTERS = "COMPUTERS_Graph\"
 }
-##########################################################################################
-function Get-OUInformation 
-{
-    $ouData = Get-ADOrganizationalUnit -Filter * -Properties * 
 
-    $ouOutput = foreach ($data in $ouData) 
-    {
-    [PSCustomObject] @{
-        'CanonicalName'                   = $data.CanonicalName
-        'City'                            = $data.City
-        'Common Name'                     = $data.cn
-        'Country'                         = $data.Country
-        'Description'                     = $data.Description
-        'DisplayName'                     = $data.DisplayName
-        'DistinguishedName'               = $data.DistinguishedName
-        'GPLink'                          = $data.gPLink
-        'InstanceType'                    = $data.instanceType
-        'IsCriticalSystemObject'          = $data.isCriticalSystemObject
-        'LastKnownParent'                 = $data.LastKnownParent
-        'LinkedGroupPolicyObjects'        = $data.LinkedGroupPolicyObjects
-        'ManagedBy'                       = $data.ManagedBy
-        'Modified'                        = $data.Modified
-        'Name'                            = $data.Name
-        'ObjectCategory'                  = $data.ObjectCategory
-        'ObjectClass'                     = $data.ObjectClass
-        'ObjectGuid'                      = $data.ObjectGuid
-        'PostalCode'                      = $data.PostalCode
-        'ProtectedFromAccidentalDeletion' = $data.ProtectedFromAccidentalDeletion
-        'ShowInAdvancedViewOnly'          = $data.showInAdvancedViewOnly
-        'State'                           = $data.State
-        'StreetAddress'                   = $data.StreetAddress
-        'USNChanged'                      = $data.uSNChanged
-        'USNCreated'                      = $data.uSNCreated
-        'WhenChanged'                     = $data.whenChanged
-        'WhenCreated'                     = $data.whenCreated
-    }
-    }
-$ouOutput
-}
-function Get-OUACL 
-{
-    Param(
-        [Parameter(Mandatory = $true)]
-        [alias("OU_ACL", "OrganisationalUnitAccessControlList")]
-        [String] $ouPath
-    )
-    $path = "AD:\" + $ouPath
-    $acls = (Get-Acl -Path $path).Access | Where-Object { $_.IsInherited -eq $false }
-
-    $info = (Get-ACL -Path $path | Select-Object Owner, Group, 'AreAccessRulesProtected', 'AreAuditRulesProtected', 'AreAccessRulesCanonical', 'AreAuditRulesCanonical')
-    
-    [PSCustomObject] @{
-        'DN'                         = $ouPath
-        'Owner'                      = $info.Owner
-        'Group'                      = $info.Group
-        'Are Access Rules Protected' = $info.'AreAccessRulesProtected'
-        'Are AuditRules Protected'   = $info.'AreAuditRulesProtected'
-        'Are Access Rules Canonical' = $info.'AreAccessRulesCanonical'
-        'Are Audit Rules Canonical'  = $info.'AreAuditRulesCanonical'
-        'ACLs'                       = $acls
-    }
-}
-function Get-GROUPInformation 
-{
-    $groupData = Get-ADGroup -Filter * -Properties *
-    $groupOutput = foreach ($data in $groupData) 
-    {
-    [PSCustomObject] @{
-        'CanonicalName'                   = $data.CanonicalName
-        'Common Name'                     = $data.cn
-        'Description'                     = $data.Description
-        'DisplayName'                     = $data.DisplayName
-        'DistinguishedName'               = $data.DistinguishedName
-        'GroupCategory'                   = $data.GroupCategory
-        'GroupScope'                      = $data.GroupScope
-        'GroupType'                       = $data.groupType
-        'HomePage'                        = $data.HomePage
-        'InstanceType'                    = $data.instanceType
-        'ManagedBy'                       = $data.ManagedBy
-        'MemberOf'                        = $data.MemberOf
-        'Members'                         = $data.Members
-        'Name'                            = $data.Name
-        'ObjectCategory'                  = $data.ObjectCategory
-        'ObjectClass'                     = $data.ObjectClass
-        'ObjectGuid'                      = $data.ObjectGuid
-        'ProtectedFromAccidentalDeletion' = $data.ProtectedFromAccidentalDeletion
-        'SamAccountName'                  = $data.SamAccountName
-        'SAMAccountType'                  = $data.sAMAccountType
-        'SID'                             = $data.SID
-        'SIDHistory'                      = $data.SIDHistory
-        'USNChanged'                      = $data.uSNChanged
-        'USNCreated'                      = $data.uSNCreated
-        'WhenChanged'                     = $data.whenChanged
-        'WhenCreated'                     = $data.whenCreated
-        }
-    }
-    $groupOutput
-}
-function Get-USERInformation 
-{
-    $userData = Get-ADUser -Filter * -Properties *
-    $userOutput = foreach ($data in $userData) {
-        [PSCustomObject] @{
-            'AccountExpirationDate'             = $data.AccountExpirationDate
-            'AccountLockoutTime'                = $data.AccountLockoutTime
-            'AccountNotDelegated'               = $data.AccountNotDelegated
-            'AllowReversiblePasswordEncryption' = $data.AllowReversiblePasswordEncryption
-            'BadLogonCount'                     = $data.BadLogonCount
-            'CannotChangePassword'              = $data.CannotChangePassword
-            'CanonicalName'                     = $data.CanonicalName
-            'Certificates'                      = $data.Certificates
-            'ChangePasswordAtLogon'             = $data.ChangePasswordAtLogon
-            'City'                              = $data.City
-            'CommonName'                        = $data.cn
-            'Company'                           = $data.Company
-            'Country'                           = $data.Country
-            'DesktopProfile'                    = $data.DesktopProfile
-            'Department'                        = $data.Department
-            'Description'                       = $data.Description
-        #    'DirectReport'                      = $data.DirectReports
-            'DisplayName'                       = $data.DisplayName
-            'DistinguishedName'                 = $data.DistinguishedName
-            'Division'                          = $data.Division
-            'DoesNotRequirePreAuth'             = $data.DoesNotRequirePreAuth
-            'EmailAddress'                      = $data.EmailAddress
-            'EmployeeID'                        = $data.EmployeeID
-            'EmployeeNumber'                    = $data.EmployeeNumber
-            'Enabled'                           = $data.Enabled
-            'Fax'                               = $data.Fax
-            'GivenName'                         = $data.GivenName
-            'GroupMembershipSAM'                = $data.groupMembershipSAM
-            'HomeDirectory'                     = $data.HomeDirectory
-            'HomeDirRequired'                   = $data.HomeDirEnabled
-            'HomeDrive'                         = $data.HomeDrive
-            'HomePage'                          = $data.HomePage
-            'HomePhone'                         = $data.HomePhone
-            'LastBadPasswordAttempt'            = $data.LastBadPasswordAttempt
-            'LastKnownParent'                   = $data.LastKnownParent
-            'LastLogOn'                         = $data.LastLogOn
-            'LastLogOff'                        = $data.LastLogOff
-            'LastLogonDate'                     = $data.LastLogonDate
-            'LockedOut'                         = $data.LockedOut
-              'LockoutTime'                       = $data.LockoutTime
-            'LogonHours'                        = $data.LogonHours
-            'LogonWorkstations'                 = $data.LogonWorkstations
-            'Manager'                           = $data.Manager
-            'MemberOf'                          = $data.MemberOf
-            'MobilePhone'                       = $data.MobilePhone
-            'Name'                              = $data.Name
-            'ObjectCategory'                    = $data.ObjectCategory
-            'ObjectClass'                       = $data.ObjectClass
-            'ObjectGuid'                        = $data.ObjectGuid
-            'Office'                            = $data.Office
-            'OfficePhone'                       = $data.OfficePhone
-            'Organization'                      = $data.Organization
-            'OtherName'                         = $data.OtherName
-            'PasswordExpired'                   = $data.PasswordExpired
-            'PasswordLastSet'                   = $data.PasswordLastSet
-            'PasswordNeverExpires'              = $data.PasswordNeverExpires
-            'PasswordNotRequired'               = $data.PasswordNotRequired
-            'POBox'                             = $data.POBox
-            'PostalCode'                        = $data.PostalCode
-            'PrimaryGroup'                      = $data.PrimaryGroup
-            'ProfilePath'                       = $data.ProfilePath
-            'ProtectedFromAccidentalDeletion'   = $data.ProtectedFromAccidentalDeletion
-            'SamAccountName'                    = $data.SamAccountName
-            'ScriptPath'                        = $data.ScriptPath
-            'ShowInAdvancedViewOnly'            = $data.showInAdvancedViewOnly
-            'ServicePrincipalName'              = $data.ServicePrincipalName
-            'SID'                               = $data.SID 
-            'SIDHistory'                        = $data.SIDHistory
-            'SmartcardLogonRequired'            = $data.SmartcardLogonRequired
-            'State'                             = $data.State 
-            'StreetAddress'                     = $data.StreetAddress
-            'Surname'                           = $data.Surname 
-            'ThumbnailPhoto'                    = $data.ThumbnailPhoto
-            'ThumbnailLogo'                     = $data.ThumbnailLogo
-            'Title'                             = $data.Title
-            'TrustedForDelegation'              = $data.TrustedForDelegation
-            'TrustedToAuthForDelegation'        = $data.TrustedToAuthForDelegation
-            'UserAccountControl'                = $data.UserAccountControl
-            'UseDESKeyOnly'                     = $data.UseDESKeyOnly
-            'UserPrincipalName'                 = $data.UserPrincipalName
-            'whenCreated'                       = $data.whenCreated
-            'whenChanged'                       = $data.whenChanged
-        }
-    }
-    $userOutput
-}
-
-#TEST
-function Get-ComputerInformation 
-{
-    $computerData = Get-ADComputer -Filter * -Properties *
-    $computerOutput = foreach ($data in $computerData) 
-    {
-    #AccountExpires,
-    [PSCustomObject] @{
-        'AccountExpirationDate' = $data.AccountExpirationDate
-        'AccountLockoutTime'    = $data.AccountLockoutTime
-        'AccountNotDelegated'   = $data.AccountNotDelegated
-        'AllowReversiblePasswordEncryption' = $data.AllowReversiblePasswordEncryption
-        'AuthenticationPolicy'   = $data.AuthenticationPolicy
-        'AuthenticationPolicySilo'  = $data.AuthenticationPolicySilo
-        'BadLogonCount' = $data.BadLogonCount
-        'CannotChangePassword'  = $data.CannotChangePassword
-        'CanonicalName' = $data.CanonicalName
-        'Certificates' = $data.Certificates
-        'CommonName' = $data.CommonName
-        'CodePage' = $data.codepage
-            'CountryCode' = $data.CountryCode
-        'Description' = $data.Description
-        'DisplayName' = $data.DisplayName
-        'DistinguishedName' = $data.DistinguishedName
-        'DNSHostName' = $data.DNSHostName
-        'DoesNotRequirePreAuth' = $data.DoesNotRequirePreAuth
-        'Enabled' = $data.Enabled
-        'HomeDirRequired' = $data.HomeDirRequired
-        'HomePage' = $data.HomePage
-        'InstanceType' = $data.instanceType
-        'IP4' = $data.IPv4Address
-        'IP6' = $data.IPv6Address
-        'IsCriticalSystemObject' = $data.isCriticalSystemObject
-        'KerberosEncryptionType' = $data."msDS-SupportedEncryptionTypes"
-        'LastBadPasswordAttempt' = $data.LastBadPasswordAttempt
-        'LastKnownParent' = $data.LastKnownParent
-        'LastLogonDate' = $data.LastLogonDate
-            'LocalPolicyFlags' = $data.LocalPolicyFlags
-        'Location' = $data.Location
-        'LockedOut' = $data.LockedOut
-        'LogonCount' = $data.LogonCount
-        'ManagedBy' = $data.ManagedBy
-        'MemberOf' = $data.MemberOf
-        'Name' = $data.Name
-        'ObjectCategory' = $data.ObjectCategory
-        'ObjectClass' = $data.ObjectClass
-        'ObjectGUID' = $data.ObjectGUID
-        'OperatingSystem' = $data.OperatingSystem
-        'OperatingSystemHotfix' = $data.OperatingSystemHotfix
-        'OperatingSystemServicePack' = $data.OperatinSystemServicePack
-        'OperatingSystemVersion' = $data.OperatingSystemVersion
-        'PasswordExpired' = $data.PasswordExpired
-        'PasswordLastSet' = $data.PasswordLastSet
-        'PasswordNeverExpires' = $data.PasswordNeverExpires
-        'PasswordNotRequired' = $data.PasswordNotRequired
-        'PrimaryGroup' = $data.PrimaryGroup
-        'PrincipalsAllowedToDelegateToAccount' = $data.PrincipalsAllowedToDelegateToAccount
-        'ProtectedFromAccidentalDeletion' = $data.ProtectedFromAccidentalDeletion
-        'SamAccountName' = $data.SamAccountName
-        'SamAccountType' = $data.SamAccountType
-        'ServiceAccount' = $data.ServiceAccount
-        'ServicePrincipalName' = $data.ServicePrincipalName
-        'ServicePrincipalNames' = $data.ServicePrincipalNames
-        'SID' = $data.SID
-        'SIDHistory' = $data.SIDHistory
-        'TrustedForDelegation' = $data.TrustedForDelegation
-        'TrustedToAuthForDelegation' = $data.TrustedToAuthForDelegation
-        'UseDESKeyOnly' = $data.UseDESKeyOnly
-        'userAccountControl' = $data.userAccountControl
-        'UserCertificate' = $data.UserCertificate
-        'UserPrincipalName' = $data.UserPrincipalName
-        'USNChanged'    = $data.uSNChanged
-        'USNCreated'    = $data.uSNCreated
-        'WhenChanged'   = $data.whenChanged
-        'WhenCreated'   = $data.whenCreated
-        }
-    }
-$computerOutput 
-}
-
-function Get-GPOPolicy 
-{
-    Param(
-        [Parameter(Mandatory = $true)]
-        [Alias("GPO_Object")]
-        $groupPolicyObject
-    )
-   
-    [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
-    #GPO version
-    if (($xmlGPOReport.GPO.Computer.VersionDirectory -eq 0) -and ($xmlGPOReport.GPO.Computer.VersionSysvol -eq 0)) {
-        $computerSettings = "NeverModified"
-    } 
-    else {
-        $computerSettings = "Modified"
-    }
-    if (($xmlGPOReport.GPO.User.VersionDirectory -eq 0) -and ($xmlGPOReport.GPO.User.VersionSysvol -eq 0)) {
-        $userSettings = "NeverModified"
-    } 
-    else {
-        $userSettings = "Modified"
-    }
-
-    #GPO content
-    if ($null -eq $xmlGPOReport.GPO.User.ExtensionData) {
-        $userSettingsConfigured = $false
-    } 
-    else {
-        $userSettingsConfigured = $true
-    }
-    if ($null -eq $xmlGPOReport.GPO.Computer.ExtensionData) {
-        $computerSettingsConfigured = $false
-    } 
-    else {
-        $computerSettingsConfigured = $true
-    }
-    #Output
-    [PsCustomObject] @{
-        'Name'                 = $xmlGPOReport.GPO.Name
-        'Links'                = $xmlGPOReport.GPO.LinksTo | Select-Object -ExpandProperty SOMPath
-        'HasComputerSettings'  = $computerSettingsConfigured
-        'HasUserSettings'      = $userSettingsConfigured
-        'UserEnabled'          = $xmlGPOReport.GPO.User.Enabled
-        'ComputerEnabled'      = $xmlGPOReport.GPO.Computer.Enabled
-        'ComputerSettings'     = $computerSettings
-        'UserSettings'         = $userSettings
-        'GpoStatus'            = $groupPolicyObject.GpoStatus
-        'CreationTime'         = $groupPolicyObject.CreationTime
-        'ModificationTime'     = $groupPolicyObject.ModificationTime
-        'WMIFilter'            = $groupPolicyObject.WmiFilter.name
-        'WMIFilterDescription' = $groupPolicyObject.WmiFilter.Description
-        'Path'                 = $groupPolicyObject.Path
-        'GUID'                 = $groupPolicyObject.Id
-    }
-
-}
-
-function Get-GPOAcl 
-{
-    Param(
-        [Parameter(Mandatory = $true)]
-        [Alias("GroupPolicy")]
-        $groupPolicyObject
-    )
-    [xml]$xmlGPOReport = $groupPolicyObject.generatereport('xml')
-    
-    #Output
-    [PsCustomObject] @{
-        'Name' = $xmlGPOReport.GPO.Name
-        'ACL'  = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
-            New-Object -TypeName PSObject -Property @{
-                'User'            = $_.trustee.name.'#Text'
-                'Permission Type' = $_.type.PermissionType
-                'Inherited'       = $_.Inherited
-                'Permissions'     = $_.Standard.GPOGroupedAccessEnum
-            }
-        }
-    }
-}
-
-
-function Get-GraphImage 
-{
-    Param(
-        [Parameter(Mandatory = $true)]
-        [Alias("GraphRoot")]
-        $root, 
-        [Alias("GraphLeaf")]
-        $leaf, 
-        [Alias("BasePathToGraphImage")]
-        $pathToImage
-    )
-
-    $imagePath = Join-Path -Path $pathToImage -ChildPath "$root.png"
-        
-    $graphTMP = graph g {
-        edge -from $root -To $leaf
-    }
-    
-    $vizPath = Join-Path -Path $pathToImage -ChildPath "$root.vz"
-    Set-Content -Path $vizPath -Value $graphTMP
-    Export-PSGraph -Source $vizPath -Destination $imagePath
-
-    #cleaning
-    Remove-Item -Path $vizPath
-
-    $imagePath
-}
-#TODO:Analysis
-function Get-FineGrainedPolicies 
-{
-    $fineGrainedPoliciesData = Get-ADFineGrainedPasswordPolicy -Filter * -Server $($Env:USERDNSDOMAIN)
-    $fineGrainedPolicies = foreach ($policy in $fineGrainedPoliciesData) {
-        [PsCustomObject] @{
-            'Name'                          = $policy.Name
-            'Complexity Enabled'            = $policy.ComplexityEnabled
-            'Lockout Duration'              = $policy.LockoutDuration
-            'Lockout Observation Window'    = $policy.LockoutObservationWindow
-            'Lockout Threshold'             = $policy.LockoutThreshold
-            'Max Password Age'              = $policy.MaxPasswordAge
-            'Min Password Length'           = $policy.MinPasswordLength
-            'Min Password Age'              = $policy.MinPasswordAge
-            'Password History Count'        = $policy.PasswordHistoryCount
-            'Reversible Encryption Enabled' = $policy.ReversibleEncryptionEnabled
-            'Precedence'                    = $policy.Precedence
-            'Applies To'                    = $policy.AppliesTo 
-            'Distinguished Name'            = $policy.DistinguishedName
-        }
-    }
-    return $fineGrainedPolicies
-}
-##########################################################################################
-#                                TOOL FUNCTIONS                                          #
-##########################################################################################
-function Get-ReportFolders {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [Alias("BasePath")]
-        [string]$reportPath,
-        [Alias("GraphFoldersHashtable")]
-        $graphFolders
-    )
-
-    foreach ($key in $($graphFolders.Keys)) {
-        $graphPath = Join-Path -Path $reportPath -ChildPath $graphFolders[$key]
-        $graphFolders[$key] = $graphPath
-        New-Item -Path $graphPath -ItemType Directory
-    }
-    $graphFolders
-}
-function ConvertTo-Name {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [alias("ObjectList_DN", "ObjectList_DistinguishedName")]
-        $objectListDN
-    )
-    $namesList = New-Object System.Collections.Generic.List[string]
-    $objectListDN | ForEach-Object {
-
-        if ($($_.contains("/"))) {
-            $namesList.Add($($_.split("/"))[1])
-        }
-        else {
-            $namesList.Add($($_ | Select-Object @{Name = 'Name'; expression = { $($_.split(',')[0]).split('=')[1] } }).Name)
-        }
-    }
-    $namesList
-}
 ##########################################################################################
 #NOTES
 ####
@@ -465,7 +32,6 @@ $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtab
 
 $reportFilePath = Join-Path -Path $basePath -ChildPath "report.docx"
 $reportFile = New-WordDocument $reportFilePath
-
 
 Add-WordText -WordDocument $reportFile -Text 'Raport z Active Directory' -FontSize 28 -FontFamily 'Calibri Light' -Supress $True
 Add-WordPageBreak -WordDocument $reportFile -Supress $true
@@ -588,7 +154,6 @@ foreach ($group in $groupObjects)
     }
 }
 
-
 Add-WordText -WordDocument $reportFile -Text "Distribution Groups"  -HeadingType Heading2 -Supress $true
 
 $groupObjects=$groups | Where-Object {$_.GroupCategory -eq "Distribution" }
@@ -616,14 +181,11 @@ foreach ($group in $groupObjects)
 
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
-
 $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup dystrybucyjnych/zabezpieczeń" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup dystrybucyjnych/zabezpieczeń" -CTitle "Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych"
 
 $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy grup lokalnych/globalnych/uniwersalnych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby grup lokalnych, globalnych,uniwersalnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup lokalnych/globalnych/uniwersalnych" -CTitle "Stosunek liczby grup lokalnych, globalnych,uniwersalnych"
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
@@ -721,21 +283,16 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading2 -Supress $true
 
 $chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont wyłączonych/włączonych" -Supress $true
-Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont wyłączonych/włączonych" -CTitle "Stosunek liczby kont wyłączonych i włączonych"
 
-#TEST
 $chart = $users | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres biur w przekroju firmy" -Supress $true 
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
-#TEST
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres biur w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+
 $chart = $users | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres stanowisk w przekroju firmy" -Supress $true
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
-#TEST
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres stanowisk w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+
 $chart = $users | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykres departamentów w przekroju firmy" -Supress $true
-Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek liczby stanowisk'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres departamentów w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
 
 #endregion USERS#####################################################################################################
 
@@ -795,15 +352,14 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -Text "Tabela polis grup"  -HeadingType Heading3 -Supress $true
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings)
+Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 1"  -HeadingType Heading3 -Supress $true
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings, ComputerSettings, UserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled, ComputerSettings, UserSettings)
+Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 2"  -HeadingType Heading3 -Supress $true
+$gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
-
-$gpoTable = $($groupPolicyObjectsList | Select-Object Name,ComputerSettings, UserSettings)
-Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+    
 #endregion GPO################################################################################################
 
 #region FGPP##################################################################################################
@@ -833,8 +389,6 @@ foreach ($fgpp in $fgpps) {
 }
 #endregion FGPP###############################################################################################
 
-#TODO:ComputerReport
-#TODO: Flatten ACL
 #region COMPUTERS#############################################################################################
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Komputerów' -Supress $true
@@ -873,51 +427,46 @@ foreach ($computer in $computers)
         }
 
 }
-    #TEST
+    
     Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
     
     Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
+
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 1"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name,Enabled,LockedOut,PasswordExpired)
+    $table = $($computers | Select-Object Name,Enabled,LockedOut,PasswordExpired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
 
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 2"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
+    $table = $($computers | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+
     
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 3"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
+    $table = $($computers | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
-    
+
+
     Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 4"  -HeadingType Heading3 -Supress $true
-    $table = $($users | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
+    $table = $($computers | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
-
-
-    
     Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
     
     $chart = $computers | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy kont komputerów wyłączonych/włączonych" -Supress $true
-    Add-WordBarChart -WordDocument $reportFile -ChartName 'Stosunek liczby kont komputerów wyłączonych i włączonych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
-
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont komputerów wyłączonych/włączonych" -CTitle "Stosunek liczby kont komputerów wyłączonych i włączonych"
+    
     $chart = $computers | Group-Object OperatingSystem | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku systemów operacyjnych" -Supress $true
-    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek rodzajów systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku systemów operacyjnych" -CTitle "Stosunek rodzajów systemów operacyjnych"
     
     $chart = $computers | Group-Object OperatingSystemVersion | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy stosunku  wersji systemów operacyjnych" -Supress $true
-    Add-WordPieChart -WordDocument $reportFile -ChartName 'Stosunek wersji systemów operacyjnych'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values)
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku  wersji systemów operacyjnych" -CTitle "Stosunek wersji systemów operacyjnych"
     
-    #TEST
-    $chart = $computers | Group-Object LogonCount | Select-Object Name, @{Name="Values";Expression={$_.Count}} | Select-Object -First 5
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Wykresy najczęściej logujących się komputerów" -Supress $true
-    Add-WordBarChart -WordDocument $reportFile -ChartName 'Wykres najczęściej logujących się komputerów'-ChartLegendPosition Bottom -ChartLegendOverlay $false -Names $([array]$chart.Name) -Values $([array]$chart.Values) -BarDirection Column
-
+    $chart = $computers | Select-Object Name,@{Name="Values";Expression={$_.LogonCount}} | Sort-Object -Descending Values |Select-Object -First 10
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy najczęściej logujących się komputerów" -CTitle "Wykres najczęściej logujących się komputerów"
     #TODO:LocalPolicyFlags - sprawdzic w pracy
 
     Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
