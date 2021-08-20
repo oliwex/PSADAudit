@@ -489,9 +489,6 @@ foreach ($computer in $computers)
 
 #endregion COMPUTERS##########################################################################################
 ##############################################################################################################
-Save-WordDocument $reportFile -Supress $true -Language "pl-PL" -Verbose #-OpenDocument
-Invoke-Item -Path $reportFilePath
+Save-WordDocument $reportFile -Supress $true -Language "en-US"  -OpenDocument -Verbose
 }
-Invoke-ADAudit
-
 #TODO:Standardy wykonania wykresów i tabel
