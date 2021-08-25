@@ -63,7 +63,7 @@ foreach ($ou in $ous)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $imagePath = Get-GraphImage -GraphRoot $($ou.Name) -GraphLeaf $ouTMP  -BasePathToGraphImage $($reportGraphFolders.OU)
+        $imagePath = Get-GraphImage -GraphRoot $($ou.Name) -GraphMiddle $null -GraphLeaf $ouTMP  -BasePathToGraphImage $($reportGraphFolders.OU)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
@@ -149,7 +149,7 @@ foreach ($group in $groupObjects)
     else 
     {
         $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
-        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
+        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphMiddle $null -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 }
@@ -174,7 +174,7 @@ foreach ($group in $groupObjects)
     else 
     {
         $groupMembersTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
-        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
+        $imagePath = Get-GraphImage -GraphRoot $($group.Name) -GraphMiddle $null -GraphLeaf $groupMembersTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 }
@@ -240,7 +240,7 @@ foreach ($user in $users)
     }
     else {
         $memberOfTMP = ConvertTo-Name -ObjectList_DN $($user.MemberOf)
-        $imagePath = Get-GraphImage -GraphRoot $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+        $imagePath = Get-GraphImage -GraphRoot $($user.Name) -GraphMiddle $null -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
@@ -252,7 +252,7 @@ foreach ($user in $users)
     }
     else {
         $managerTMP = ConvertTo-Name -ObjectList_DN $($user.Manager)
-        $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($user.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
+        $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $null -GraphLeaf $($user.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
 
@@ -319,7 +319,7 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
     else 
     {
         $linksTMP = ConvertTo-Name -ObjectList_DN $($gpoObject.Links)
-        $imagePath = Get-GraphImage -GraphRoot $($gpoObject.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
+        $imagePath = Get-GraphImage -GraphRoot $($gpoObject.Name) -GraphMiddle $null -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
     
@@ -381,7 +381,7 @@ foreach ($fgpp in $fgpps) {
     }
     else {
         $fgppAplliedTMP = ConvertTo-Name -ObjectList_DN $($fgpp.'Applies To')
-        $imagePath = Get-GraphImage -GraphRoot $($fgpp.Name) -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
+        $imagePath = Get-GraphImage -GraphRoot $($fgpp.Name) -GraphMiddle $null -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
     
@@ -410,7 +410,7 @@ foreach ($computer in $computers)
         }
         else {
             $memberOfTMP = ConvertTo-Name -ObjectList_DN $($computer.MemberOf)
-            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
+            $imagePath = Get-GraphImage -GraphRoot $($computer.Name) -GraphMiddle $null -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
@@ -422,7 +422,7 @@ foreach ($computer in $computers)
         }
         else {
             $managerTMP = ConvertTo-Name -ObjectList_DN $($computer.ManagedBy)
-            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
+            $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $null -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 

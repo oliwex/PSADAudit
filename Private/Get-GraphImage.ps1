@@ -2,7 +2,9 @@ function Get-GraphImage {
     Param(
         [Parameter(Mandatory = $true)]
         [Alias("GraphRoot")]
-        $root, 
+        $root,
+        [Alias("GraphMiddle")]
+        $middle, 
         [Alias("GraphLeaf")]
         $leaf, 
         [Alias("BasePathToGraphImage")]
@@ -10,9 +12,19 @@ function Get-GraphImage {
     )
 
     $imagePath = Join-Path -Path $pathToImage -ChildPath "$root.png"
-        
-    $graphTMP = graph g {
-        edge -from $root -To $leaf
+    $graphTMP=$null
+    if ($middle -eq $null)
+    {
+        $graphTMP = graph g {
+            edge -From $root -To $leaf
+        }    
+    }
+    else
+    {
+        $graphTMP = graph g {
+            edge -From $root -To $middle
+            edge -From $middle -To $leaf
+        }        
     }
     
     $vizPath = Join-Path -Path $pathToImage -ChildPath "$root.vz"
@@ -24,3 +36,5 @@ function Get-GraphImage {
 
     $imagePath
 }
+
+ 
