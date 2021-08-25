@@ -13,10 +13,10 @@ function Get-GraphImage {
 
     $imagePath = Join-Path -Path $pathToImage -ChildPath "$root.png"
     $graphTMP=$null
-    if ($middle -eq $null)
+    if ($root -eq $null)
     {
         $graphTMP = graph g {
-            edge -From $root -To $leaf
+            edge -From $middle -To $leaf
         }    
     }
     else
