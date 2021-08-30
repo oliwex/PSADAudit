@@ -7,6 +7,7 @@ $graphFolders = @{
     USERS     = "USERS_Graph\"
     COMPUTERS = "COMPUTERS_Graph\"
 }
+
 function Get-ReportFolders {
     Param(
         [Parameter(Mandatory = $true)]
@@ -15,8 +16,12 @@ function Get-ReportFolders {
         [Alias("GraphFoldersHashtable")]
         $graphFolders
     )
-    $graphFolders.Keys.clone() | ForEach-Object {
-        $graphFolders[$_] = Join-Path -Path $reportPath -ChildPath $_
+    $graphFoldersOutput=@{}
+    $($graphFolders.Keys) | ForEach-Object {
+        $folderPath = Join-Path -Path $reportPath -ChildPath $_
+        $graphFoldersOutput.Add($_, $folderPath)
+        New-Item -Path $folderPath -ItemType Directory
     }
-    $graphFolders
+    $graphFoldersOutput
 }
+Get-ReportFolders -BasePath $basePath -GraphFoldersHashtable $graphFolders
