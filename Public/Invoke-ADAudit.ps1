@@ -63,8 +63,7 @@ foreach ($ou in $ous)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-
-        $ouRootTMP=$($($ou.DistinguishedName).split(",")[1]).Substring(3)
+        $ouRootTMP=$($($ou.DistinguishedName).split(",*..=")[1])
         $imagePath = Get-GraphImage -GraphRoot $ouRootTMP -GraphMiddle $($ou.Name) -GraphLeaf $ouTMP  -BasePathToGraphImage $($reportGraphFolders.OU)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -118,14 +117,14 @@ foreach ($group in $groupObjects)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
-    if ($null -eq $($group.Members)) 
+    if ($null -eq $($groups.Members)) 
     {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
     }
     else 
-    {
-        $groupLeafTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
-        $groupRootTMP = ConvertTo-Name -ObjectList_DN $($group.MemberOf)
+    {#TODO
+        $groupLeafTMP = $($($group.Members).split(",*..="))[1]
+        $groupRootTMP = $($($group.MemberOf).split(",*..="))[1]
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -151,8 +150,8 @@ foreach ($group in $groupObjects)
     }
     else 
     {
-        $groupLeafTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
-        $groupRootTMP = ConvertTo-Name -ObjectList_DN $($group.MemberOf)
+        $groupLeafTMP = $($($group.Members).split(",*..=")[1])
+        $groupRootTMP = $($($group.MemberOf).split(",*..=")[1])
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -177,8 +176,8 @@ foreach ($group in $groupObjects)
     }
     else 
     {
-        $groupLeafTMP = ConvertTo-Name -ObjectList_DN $($group.Members)
-        $groupRootTMP = ConvertTo-Name -ObjectList_DN $($group.MemberOf)
+        $groupLeafTMP = $($($group.Members).split(",*..=")[1])
+        $groupRootTMP = $($($group.MemberOf).split(",*..=")[1])
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -244,7 +243,7 @@ foreach ($user in $users)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $memberOfTMP = ConvertTo-Name -ObjectList_DN $($user.MemberOf)
+        $memberOfTMP = $($($user.MemberOf).split(",*..=")[1])
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -256,8 +255,8 @@ foreach ($user in $users)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $managerTMP = ConvertTo-Name -ObjectList_DN $($user.Manager)
-        $directReportsTMP = ConvertTo-Name -ObjectList_DN $($user.Manager)
+        $managerTMP = $($($user.Manager).split(",*..=")[1])
+        $directReportsTMP = $($($user.DirectReports).split(",*..=")[1])
         $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $($user.Name) -GraphLeaf $directReportsTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -415,7 +414,7 @@ foreach ($computer in $computers)
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
-            $computerLeafTMP = ConvertTo-Name -ObjectList_DN $($computer.MemberOf)
+            $computerLeafTMP = $($($computer.MemberOf).split(",*..=")[1])
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
@@ -427,7 +426,7 @@ foreach ($computer in $computers)
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
-            $managerTMP = ConvertTo-Name -ObjectList_DN $($computer.ManagedBy)
+            $managerTMP = $($($computer.ManagedBy).split(",*..=")[1])
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }

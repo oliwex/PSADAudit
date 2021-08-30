@@ -1,3 +1,12 @@
+$basePath = "C:\reporty\"
+$graphFolders = @{
+    GPO       = "GPO_Graph\"
+    OU        = "OU_Graph\"
+    FGPP      = "FGPP_Graph\"
+    GROUP     = "GROUP_Graph\"
+    USERS     = "USERS_Graph\"
+    COMPUTERS = "COMPUTERS_Graph\"
+}
 function Get-ReportFolders {
     Param(
         [Parameter(Mandatory = $true)]
@@ -6,11 +15,8 @@ function Get-ReportFolders {
         [Alias("GraphFoldersHashtable")]
         $graphFolders
     )
-
-    foreach ($key in $($graphFolders.Keys)) {
-        $graphPath = Join-Path -Path $reportPath -ChildPath $graphFolders[$key]
-        $graphFolders[$key] = $graphPath
-        New-Item -Path $graphPath -ItemType Directory
+    $graphFolders.Keys.clone() | ForEach-Object {
+        $graphFolders[$_] = Join-Path -Path $reportPath -ChildPath $_
     }
     $graphFolders
 }
