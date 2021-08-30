@@ -6,11 +6,12 @@ function Get-ReportFolders {
         [Alias("GraphFoldersHashtable")]
         $graphFolders
     )
-
-    foreach ($key in $($graphFolders.Keys)) {
-        $graphPath = Join-Path -Path $reportPath -ChildPath $graphFolders[$key]
-        $graphFolders[$key] = $graphPath
-        New-Item -Path $graphPath -ItemType Directory
+    $graphFoldersOutput=@{}
+    $($graphFolders.Keys) | ForEach-Object {
+        $folderPath = Join-Path -Path $reportPath -ChildPath $graphFolders[$_]
+        New-Item -Path $folderPath -ItemType Directory | Out-Null
+        $graphFoldersOutput.Add($_, $folderPath)
     }
-    $graphFolders
+    $graphFoldersOutput
 }
+
