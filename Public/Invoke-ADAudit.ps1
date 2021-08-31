@@ -1,8 +1,8 @@
 ﻿#TODO: GPO ACL edit to create better table
 #TODO: Create ACL based on ADSI edit properties
 #TODO: Big graph representing full company/representing OU structure?
-#TODO: redesign graph functions to create 3 levels graphs
-#TODO: graph representing boss->employess and boss ->boss
+#TODO: redesign graph functions to create 3 levels graphs #DONE
+#TODO: graph representing boss->employess and boss ->boss #DONE
 #TODO: OU permissions ograniczyć i przekształcić tabelę
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
@@ -121,9 +121,9 @@ foreach ($group in $groupObjects)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
     }
     else 
-    {#TODO
-        $groupLeafTMP = $($($group.Members).split(",*..="))[1]
-        $groupRootTMP = $($($group.MemberOf).split(",*..="))[1]
+    {
+        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -149,8 +149,8 @@ foreach ($group in $groupObjects)
     }
     else 
     {
-        $groupLeafTMP = $($($group.Members).split(",*..=")[1])
-        $groupRootTMP = $($($group.MemberOf).split(",*..=")[1])
+        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -175,8 +175,8 @@ foreach ($group in $groupObjects)
     }
     else 
     {
-        $groupLeafTMP = $($($group.Members).split(",*..=")[1])
-        $groupRootTMP = $($($group.MemberOf).split(",*..=")[1])
+        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -242,7 +242,7 @@ foreach ($user in $users)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $memberOfTMP = $($($user.MemberOf).split(",*..=")[1])
+        $memberOfTMP = $user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -254,8 +254,8 @@ foreach ($user in $users)
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
     }
     else {
-        $managerTMP = $($($user.Manager).split(",*..=")[1])
-        $directReportsTMP = $($($user.DirectReports).split(",*..=")[1])
+        $managerTMP = $user.Manager| ForEach-Object { $(($_ -split ',*..=')[1]) } 
+        $directReportsTMP = $user.DirectReports | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $($user.Name) -GraphLeaf $directReportsTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -322,7 +322,7 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
     }
     else 
     {
-        $linksTMP = ConvertTo-Name -ObjectList_DN $($gpoObject.Links)
+        $linksTMP = $gpoObject.Links.split(";")
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($gpoObject.Name) -GraphLeaf $linksTMP -pathToImage $($reportGraphFolders.GPO)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -384,7 +384,7 @@ foreach ($fgpp in $fgpps) {
         Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
     }
     else {
-        $fgppAplliedTMP = ConvertTo-Name -ObjectList_DN $($fgpp.'Applies To')
+        $fgppAplliedTMP = $($fgpp.'Applies To').split(";")
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($fgpp.Name) -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -413,7 +413,7 @@ foreach ($computer in $computers)
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
-            $computerLeafTMP = $($($computer.MemberOf).split(",*..=")[1])
+            $computerLeafTMP = $computer.MemberOf| ForEach-Object { $(($_ -split ',*..=')[1]) }
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
@@ -425,7 +425,7 @@ foreach ($computer in $computers)
             Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
         }
         else {
-            $managerTMP = $($($computer.ManagedBy).split(",*..=")[1])
+            $managerTMP = $computer.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
