@@ -58,15 +58,18 @@ foreach ($ou in $ous)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Graph" -Supress $true 
 
-    $ouTMP = $(Get-ADOrganizationalUnit -Filter "*" -SearchBase $($ou.DistinguishedName) -SearchScope OneLevel).Name
-    if ($null -eq $ouTMP) {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+    $ouLeaf = $(Get-ADOrganizationalUnit -Filter "*" -SearchBase $($ou.DistinguishedName) -SearchScope OneLevel).Name
+    $ouRoot=$($($ou.DistinguishedName) -split ',*..=')[2]
+    if (($null -eq $ouLeaf) -and ($null -eq $ouRoot))
+    {
+        Add-WordText -WordDocument $reportFile -Text "$($ou.Name) do not have above and below elements" -Supress $true
     }
-    else {
-        $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($ou.Name) -GraphLeaf $ouTMP  -BasePathToGraphImage $($reportGraphFolders.OU)
+    else
+    { 
+        $imagePath = Get-GraphImage -GraphRoot $ouRoot -GraphMiddle $($ou.Name) -GraphLeaf $ouLeaf  -BasePathToGraphImage $($reportGraphFolders.OU)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
-
+   
     #ACL
     $ouACL = Get-OUACL -OU $($ou.DistinguishedName)
     
@@ -116,14 +119,15 @@ foreach ($group in $groupObjects)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
-    if ($null -eq $($groups.Members)) 
+
+    $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    if (($null -eq $groupLeafTMP) -and ($null -eq $groupRootTMP))
     {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+        Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above and below elements" -Supress $true
     }
-    else 
+    else
     {
-        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
-        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -143,14 +147,14 @@ foreach ($group in $groupObjects)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
-    if ($null -eq $($group.Members)) 
+    $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    if (($null -eq $groupLeafTMP) -and ($null -eq $groupRootTMP))
     {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+        Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above and below elements" -Supress $true
     }
-    else 
+    else
     {
-        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
-        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -169,14 +173,14 @@ foreach ($group in $groupObjects)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
-    if ($null -eq $($group.Members)) 
+    $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    if (($null -eq $groupLeafTMP) -and ($null -eq $groupRootTMP))
     {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+        Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above and below elements" -Supress $true
     }
-    else 
+    else
     {
-        $groupLeafTMP = $group.Members | ForEach-Object { $(($_ -split ',*..=')[1]) }
-        $groupRootTMP = $group.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
@@ -239,7 +243,7 @@ foreach ($user in $users)
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
 
     if ($null -eq $($user.MemberOf)) {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have below elements" -Supress $true   
     }
     else {
         $memberOfTMP = $user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
@@ -249,17 +253,17 @@ foreach ($user in $users)
 
     #Manager
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) DirectManager" -Supress $true 
-
-    if ($null -eq $($user.Manager)) {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+    $managerTMP = $user.Manager| ForEach-Object { $(($_ -split ',*..=')[1]) } 
+    $directReportsTMP = $user.DirectReports | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    if (($null -eq $managerTMP) -and ($null -eq $directReportsTMP))
+    {
+        Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have above and below elements" -Supress $true    
     }
-    else {
-        $managerTMP = $user.Manager| ForEach-Object { $(($_ -split ',*..=')[1]) } 
-        $directReportsTMP = $user.DirectReports | ForEach-Object { $(($_ -split ',*..=')[1]) }
+    else
+    {
         $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $($user.Name) -GraphLeaf $directReportsTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
-
     #TODO:Create graph with full organisation manager and direct report
 }
 
@@ -316,9 +320,10 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
     Add-WordTable -WordDocument $reportFile -DataTable $gpoObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($gpoObject.Name) -Transpose -Supress $true
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Graph" -Supress $true
     
+    
     if ($null -eq $($gpoObject.Links)) 
     {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+        Add-WordText -WordDocument $reportFile -Text "$($gpoObject.Name) do not have below elements" -Supress $true      
     }
     else 
     {
@@ -380,10 +385,12 @@ foreach ($fgpp in $fgpps) {
 
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($fgpp.Name) is applied to" -Supress $true
     
-    if ($null -eq $($fgpp.'Applies To')) {
-        Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true    
+    if ($null -eq $($fgpp.'Applies To')) 
+    {
+        Add-WordText -WordDocument $reportFile -Text "$($fgpp.Name) do not have below elements" -Supress $true  
     }
-    else {
+    else 
+    {
         $fgppAplliedTMP = $($fgpp.'Applies To').split(";")
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($fgpp.Name) -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
@@ -408,24 +415,28 @@ foreach ($computer in $computers)
         
         #MemberOf
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) MemberOfGroup Graph" -Supress $true 
-
-        if ($null -eq $($computer.MemberOf)) {
-            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        
+        $computerLeafTMP = $computer.MemberOf| ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $computerLeafTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have below elements" -Supress $true     
         }
-        else {
-            $computerLeafTMP = $computer.MemberOf| ForEach-Object { $(($_ -split ',*..=')[1]) }
+        else 
+        {
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
         #ManagedBy
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) ManagedBy" -Supress $true 
-
-        if ($null -eq $($computer.ManagedBy)) {
-            Add-WordText -WordDocument $reportFile -Text "No Leafs" -Supress $true     
+        
+        $managerTMP = $computer.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $managerTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have above elements" -Supress $true       
         }
-        else {
-            $managerTMP = $computer.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        else 
+        {
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }

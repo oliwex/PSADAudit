@@ -24,10 +24,6 @@ function Get-GraphImage {
             edge -From $root -To $middle
         } 
     }
-    elseif (($null -eq $leaf) -and ($null -eq $root)) #not have boss and employes
-    {
-        Add-WordText -WordDocument $reportFile -Text "No Boss no DirectReports" -Supress $true      
-    }
     else #have boss and employees
     {
         $graphTMP = graph g {

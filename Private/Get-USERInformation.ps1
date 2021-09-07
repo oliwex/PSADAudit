@@ -18,7 +18,7 @@ function Get-USERInformation {
             'DesktopProfile'                    = $data.DesktopProfile
             'Department'                        = $data.Department
             'Description'                       = $data.Description
-            #    'DirectReport'                      = $data.DirectReports
+            'DirectReports'                     = $data.DirectReports
             'DisplayName'                       = $data.DisplayName
             'DistinguishedName'                 = $data.DistinguishedName
             'Division'                          = $data.Division
