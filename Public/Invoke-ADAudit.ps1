@@ -1,9 +1,10 @@
 ﻿#TODO: GPO ACL edit to create better table
 #TODO: Create ACL based on ADSI edit properties
 #TODO: Big graph representing full company/representing OU structure?
-#TODO: redesign graph functions to create 3 levels graphs #DONE
-#TODO: graph representing boss->employess and boss ->boss #DONE
 #TODO: OU permissions ograniczyć i przekształcić tabelę
+#TODO:Create ACLS based on adsi edit for every element
+#TODO:Create tables with custom headers for ACLS
+
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
 ##########################################################################################
@@ -77,10 +78,8 @@ foreach ($ou in $ous)
     Add-WordTable -WordDocument $reportFile -DataTable $($ouACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     
-    $($ouACL.ACLs) | ForEach-Object {
-        Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions" -Transpose -Supress $true
-        Add-WordText -WordDocument $reportFile -Text "" -Supress $true
-    }
+    Add-WordTable -WordDocument $reportFile -DataTable $($ouACL.ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions"  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 }
 
 Add-WordText -WordDocument $reportFile -Text "OrganizationalUnit Tables"  -HeadingType Heading2 -Supress $true

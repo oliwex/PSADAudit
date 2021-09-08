@@ -5,7 +5,7 @@ function Get-OUACL {
         [String] $ouPath
     )
     $path = "AD:\" + $ouPath
-    $acls = (Get-Acl -Path $path).Access | Where-Object { $_.IsInherited -eq $false }
+    $acls = (Get-Acl -Path $path).Access | Select-Object ActiveDirectoryRights,AccessControlType,IdentityReference,InheritanceType,InheritanceFlags,PropagationFlags
 
     $info = (Get-ACL -Path $path | Select-Object Owner, Group, 'AreAccessRulesProtected', 'AreAuditRulesProtected', 'AreAccessRulesCanonical', 'AreAuditRulesCanonical')
     
