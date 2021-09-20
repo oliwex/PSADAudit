@@ -1,4 +1,4 @@
-function Get-OUACL {
+function Get-OUAcl {
     Param(
         [Parameter(Mandatory = $true)]
         [alias("OU_ACL", "OrganisationalUnitAccessControlList")]

@@ -1,4 +1,4 @@
-﻿function Get-GROUPACL {
+﻿function Get-GROUPAcl {
     Param(
         [Parameter(Mandatory = $true)]
         [alias("GROUP_ACL", "GroupAccessControlList")]

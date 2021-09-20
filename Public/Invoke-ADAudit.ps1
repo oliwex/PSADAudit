@@ -57,7 +57,7 @@ foreach ($ou in $ous)
     }
    
     #ACL
-    $ouACL = Get-OUACL -OU $($ou.DistinguishedName)
+    $ouACL = Get-OUAcl -OU $($ou.DistinguishedName)
     
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Permissions" -Supress $true 
     Add-WordTable -WordDocument $reportFile -DataTable $($ouACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
@@ -115,6 +115,16 @@ foreach ($group in $groupObjects)
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
+
+    #ACL
+    $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 }
 
 
@@ -142,6 +152,16 @@ foreach ($group in $groupObjects)
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
+
+    #ACL
+    $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 }
 
 Add-WordText -WordDocument $reportFile -Text "Distribution Groups"  -HeadingType Heading2 -Supress $true
@@ -168,6 +188,16 @@ foreach ($group in $groupObjects)
         $imagePath = Get-GraphImage -GraphRoot $groupRootTMP -GraphMiddle $($group.Name) -GraphLeaf $groupLeafTMP -pathToImage $($reportGraphFolders.GROUP)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
+
+    #ACL
+    $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    
+    Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 }
 
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
