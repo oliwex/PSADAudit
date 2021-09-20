@@ -1,10 +1,8 @@
-﻿#TODO: GPO ACL edit to create better table
-#TODO: Big graph representing full company/representing OU structure?
+﻿#TODO: Big graph representing full company/representing OU structure?
 #TODO:Create ACLS based on adsi edit for every element
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
 ##########################################################################################
-$basePath = "C:\reporty\"
 $graphFolders = @{
     GPO   = "GPO_Graph\"
     OU    = "OU_Graph\"
@@ -24,7 +22,7 @@ $graphFolders = @{
 ##########################################################################################
 function Invoke-ADAudit
 {
-
+$basePath=New-Workplace
 $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtable $graphFolders
 
 $reportFilePath = Join-Path -Path $basePath -ChildPath "report.docx"
