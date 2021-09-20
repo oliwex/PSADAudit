@@ -9,5 +9,3 @@
 Get-ChildItem -Path "$PSScriptRoot/Public", "$PSScriptRoot/Private" -File -Recurse *.ps1 | ForEach-Object {
     . $_.FullName
 }
-
-. 'C:\Program Files\WindowsPowerShell\Modules\PSADAudit\Private\GraphFolders.ps1'
