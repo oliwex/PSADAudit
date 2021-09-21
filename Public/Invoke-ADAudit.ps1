@@ -358,14 +358,24 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
     }
     
     #ACL
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Permissions" -Supress $true
-    $gpoObjectACL = Get-GPOAcl -GroupPolicy $groupPolicyObject
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Permissions Simple" -Supress $true
+    $gpoObjectACL = Get-GPOAclSimple -GroupPolicy $groupPolicyObject
     
     $gpoObjectACL.ACL | ForEach-Object {
         Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true 
     }
+
+    #ACL
+    $pathACL = Get-GPOAclExtended -GPO_ACL $($groupPolicyObject.Path)
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($pathACL.DisplayName) Permissions Extended" -Supress $true 
+    Add-WordTable -WordDocument $reportFile -DataTable $($pathACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     
+    Add-WordTable -WordDocument $reportFile -DataTable $($pathACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+
     $gpoObject
 }
 

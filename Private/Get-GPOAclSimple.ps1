@@ -1,4 +1,5 @@
-function Get-GPOAcl {
+function Get-GPOAclSimple 
+{
     Param(
         [Parameter(Mandatory = $true)]
         [Alias("GroupPolicy")]
@@ -10,7 +11,7 @@ function Get-GPOAcl {
     [PsCustomObject] @{
         'Name' = $xmlGPOReport.GPO.Name
         'ACL'  = $xmlGPOReport.GPO.SecurityDescriptor.Permissions.TrusteePermissions | ForEach-Object -Process {
-            New-Object -TypeName PSObject -Property @{
+            [PSCustomObject] @{
                 'User'            = $_.trustee.name.'#Text'
                 'Permission Type' = $_.type.PermissionType
                 'Inherited'       = $_.Inherited
