@@ -279,6 +279,17 @@ foreach ($user in $users)
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
     #TODO:Create graph with full organisation manager and direct report
+
+    #ACL
+    $userACL = Get-GROUPAcl -GROUP_ACL $($user.DistinguishedName)
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) Permissions" -Supress $true 
+    Add-WordTable -WordDocument $reportFile -DataTable $($userACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "User Options" -Transpose -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+    
+    Add-WordTable -WordDocument $reportFile -DataTable $($userAcl.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "" -Supress $true
+
 }
 
 
