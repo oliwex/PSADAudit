@@ -287,7 +287,7 @@ foreach ($user in $users)
     Add-WordTable -WordDocument $reportFile -DataTable $($userACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "User Options" -Transpose -Supress $true
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     
-    Add-WordTable -WordDocument $reportFile -DataTable $($userAcl.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $($userACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 
 }
@@ -369,7 +369,7 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
     #ACL
     $pathACL = Get-GPOAclExtended -GPO_ACL $($groupPolicyObject.Path)
 
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($pathACL.DisplayName) Permissions Extended" -Supress $true 
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Permissions Extended" -Supress $true 
     Add-WordTable -WordDocument $reportFile -DataTable $($pathACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     
@@ -479,7 +479,7 @@ foreach ($computer in $computers)
         #ACL
         $computerACL = Get-GPOAclExtended -GPO_ACL $($computer.DistinguishedName)
 
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computerACL.DisplayName) Permissions Extended" -Supress $true 
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) Permissions Extended" -Supress $true 
         Add-WordTable -WordDocument $reportFile -DataTable $($computerACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     

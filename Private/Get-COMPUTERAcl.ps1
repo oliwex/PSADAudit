@@ -10,7 +10,7 @@ function Get-COMPUTERAcl {
     $info = (Get-ACL -Path $path | Select-Object Owner, Group, 'AreAccessRulesProtected', 'AreAuditRulesProtected', 'AreAccessRulesCanonical', 'AreAuditRulesCanonical')
 
     [PSCustomObject] @{
-        'DN'                         = $userPath
+        'DN'                         = $computerPath
         'Owner'                      = $info.Owner
         'Group'                      = $info.Group
         'Are Access Rules Protected' = $info.'AreAccessRulesProtected'
@@ -20,4 +20,3 @@ function Get-COMPUTERAcl {
         'ACLs'                       = $acls
     }
 }
-
