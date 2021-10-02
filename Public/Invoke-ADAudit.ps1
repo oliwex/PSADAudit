@@ -1,9 +1,7 @@
-﻿#TODO: Big graph representing full company/representing OU structure?
-#TODO:Create ACLS based on adsi edit for every element
+﻿
 ##########################################################################################
 #                                GLOBAL VARIABLES                                        #
 ##########################################################################################
-
 #NOTES
 ####
 #Local security groups - tworzone gdy tworzy się AD
