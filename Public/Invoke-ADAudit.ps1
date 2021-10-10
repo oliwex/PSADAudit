@@ -17,7 +17,7 @@ $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtab
 $reportFilePath = Join-Path -Path $basePath -ChildPath "report.docx"
 $reportFile = New-WordDocument $reportFilePath
 
-Add-WordText -WordDocument $reportFile -Text 'Raport z Active Directory' -FontSize 28 -FontFamily 'Calibri Light' -Supress $True
+Add-WordText -WordDocument $reportFile -Text "Active Directory Report" -FontSize 28 -FontFamily 'Calibri Light' -Supress $True
 Add-WordPageBreak -WordDocument $reportFile -Supress $true
 
 #region TOC #########################################################################################################
@@ -29,8 +29,17 @@ Add-WordPageBreak -WordDocument $reportFile -Supress $true
 #endregion TOC ########################################################################################################
 
 #region OU ############################################################################################################
-Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis jednostek organizacyjnych' -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Ta część zawiera spis jednostek organizacyjnych wraz z informacjami o każdej z nich' -Supress $True
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Organisational Units List' -Supress $true
+Add-WordText -WordDocument $reportFile -Text "This part describe Organisational Units properties related to this report" -Supress $True
+
+
+
+$lama = Get-Content "$(($env:PSModulePath -split ";")[1])\PSADAudit\Private\Text\OrganisationalUnit.txt"
+
+Add-WordList -WordDocument $reportFile -ListType Bulleted -ListData $lama -Supress $true -Verbose
+#Add-WordText -WordDocument $reportFile -Text $lama -Supress $True
+
+
 
 $ous = Get-OUInformation
 foreach ($ou in $ous) 
