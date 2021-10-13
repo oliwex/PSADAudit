@@ -1,0 +1,16 @@
+[
+    {
+        "Name":"OrganizationalUnit",
+        "Elements": {
+            "DistinguishedName":"Path to exact Organisational Unit",
+            "Name":"Name of Organisational Unit"
+            }
+    },
+    {
+        "Name": "User",
+        "Elements": {
+            "DistinguishedName": "Path to exact Organisational Unit",
+            "Name": "UserName"
+        }
+    }
+]
