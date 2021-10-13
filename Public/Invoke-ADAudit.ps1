@@ -33,16 +33,7 @@ Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Organisation
 Add-WordText -WordDocument $reportFile -Text "This part describe Organisational Units properties related to this report" -Supress $True
 
 
-#
-#$lama = Get-Content "$(($env:PSModulePath -split ";")[1])\PSADAudit\Private\Text\OrganisationalUnitjson.json" | ConvertFrom-Json
-#$lama[0].Elements.PSObject.Properties | ForEach-Object {
-#Write-Host "$($_.Name) - $($_.Value)"
-#}
-#
-Add-WordList -WordDocument $reportFile -ListType Bulleted -ListData $lama -Supress $true -Verbose
-#Add-WordText -WordDocument $reportFile -Text $lama -Supress $True
-
-
+Add-Description -PathToDescription $pathToDescription -DescriptionType "Organisational Unit"
 
 $ous = Get-OUInformation
 foreach ($ou in $ous) 
