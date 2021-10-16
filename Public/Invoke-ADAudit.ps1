@@ -32,8 +32,7 @@ Add-WordPageBreak -WordDocument $reportFile -Supress $true
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Organisational Units List' -Supress $true
 Add-WordText -WordDocument $reportFile -Text "This part describe Organisational Units properties related to this report" -Supress $True
 
-
-Add-Description -PathToDescription $pathToDescription -DescriptionType "Organisational Unit"
+Add-Description -DescriptionPath "C:\Program Files\WindowsPowerShell\Modules\PSADAudit\Private\Text\Description.json" -DescriptionType "Organisational Unit"
 
 $ous = Get-OUInformation
 foreach ($ou in $ous) 
