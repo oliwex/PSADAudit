@@ -147,5 +147,25 @@
             "WhenCreated":"Date when this object was created. This value is replicated and is in the global catalog.",
             "WhenChanged":"Date when the object is last changed. It is not replicated and exist in GlobalCatalog"
         }
+    },
+    {
+            "Name": "GPOPolicies",
+            "Elements": {
+            "Name": "Name of an object",
+            "Links":"Information where that object is linked.Provided in CanonicalName for OU.",
+            "HasComputerSettings":"True if in this object policies are configured, otherwise False",
+            "HasUserSettings": "True if in this object policies are configured, otherwise False",
+            "UserEnabled": "True if in this object user policies are enabled, otherwise False",
+            "ComputerEnabled": "True if in this object computer policies are enabled, otherwise False",
+            "ComputerSettings": "Modified if computer settings are modified, otherwise NeverModified",
+            "UserSettings": "Modified if user settings are modified, otherwise NeverModified",
+            "GPOStatus": "Status of this object. Can be: AllSettingsEnabled-users and computer policies are enabled, ",
+            "CreationTime": "Time when the object is created",
+            "ModificationTime": "Time when the object is modified",
+            "WMIFilter": "Filter for objects, where to use gpo",
+            "WMIFiterDescription": "Description for WMI Filter",
+            "Path":"Path to object in adsi.edit",
+            "GUID":"Unique identifier for an object. It cannot be changed."
+        }
     }
 ]
