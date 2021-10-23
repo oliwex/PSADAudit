@@ -30,8 +30,6 @@ Add-WordPageBreak -WordDocument $reportFile -Supress $true
 
 #region OU ############################################################################################################
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Organisational Units List' -Supress $true
-Add-WordText -WordDocument $reportFile -Text "This part describe Organisational Units properties related to this report" -Supress $True
-
 Add-Description -DescriptionPath $pathToDescription -DescriptionType "Organisational Unit"
 
 $ous = Get-OUInformation
@@ -67,18 +65,18 @@ foreach ($ou in $ous)
     Add-WordText -WordDocument $reportFile -Text "" -Supress $true
 }
 
-Add-WordText -WordDocument $reportFile -Text "OrganizationalUnit Tables"  -HeadingType Heading2 -Supress $true
-Add-WordText -WordDocument $reportFile -Text "Tabela miast i Państw"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Organisational Unit Tables"  -HeadingType Heading2 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Cities and Country Table"  -HeadingType Heading3 -Supress $true
 $ouTable = $($ous | Select-Object Name, StreetAddress, PostalCode, City, State, Country)
 Add-WordTable -WordDocument $reportFile -DataTable $ouTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
-Add-WordText -WordDocument $reportFile -Text "OrganizationalUnit Lists"  -HeadingType Heading2 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Organisational Unit List"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych jednostek organizacyjnych" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 changed organisational unit" -Supress $true
 $list = $($($ous | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "OUName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).OUName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych jednostek organizacyjnych" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
 $list = $($($ous | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "OUName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).OUName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
@@ -204,23 +202,23 @@ foreach ($group in $groupObjects)
 Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
 $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup dystrybucyjnych/zabezpieczeń" -CTitle "Stosunek liczby grup zabezpieczeń do grup dystrybucyjnych"
+Add-WordChart -CType "Barchart" -CData $chart -STitle "Distribution\Security group chart" -CTitle "Ratio between security groups and distribution groups"
 
 $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy grup lokalnych/globalnych/uniwersalnych" -CTitle "Stosunek liczby grup lokalnych, globalnych,uniwersalnych"
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Local\Global\Universal group chart" -CTitle "Ratio between local groups,global groups and universal groups"
 
 Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
 $list = $($($groups | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "GroupName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).GroupName
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych grup" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 changed groups" -Supress $true
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 $list = $($($groups | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "GroupName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).GroupName
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych grup" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created groups" -Supress $true
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 $list = $($groups | Where-Object { $_.Members.Count -eq 0 }).Name
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Grupy puste" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Empty Groups" -Supress $true
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
@@ -242,7 +240,7 @@ Add-WordTable -WordDocument $reportFile -DataTable $groupTable -Design ColorfulG
 #endregion GROUPS#####################################################################################################
 
 #region USERS#####################################################################################################
-Add-WordText -WordDocument $reportFile -Text 'Spis Użytkowników' -HeadingType Heading1 -Supress $true
+Add-WordText -WordDocument $reportFile -Text 'Users List' -HeadingType Heading1 -Supress $true
 Add-Description -DescriptionPath $pathToDescription -DescriptionType "User"
 
 $users = Get-USERInformation
@@ -293,45 +291,44 @@ foreach ($user in $users)
 
 }
 
-
 Add-WordText -WordDocument $reportFile -Text "Users Table"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -Text "Tabela lokalizacji użytkowników"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Users Table Location"  -HeadingType Heading3 -Supress $true
 $table = $($users | Select-Object Name, Department, City, Country)
 Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
-Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Security Table"  -HeadingType Heading3 -Supress $true
 $table = $($users | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
 Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 Add-WordText -WordDocument $reportFile -Text "Users Lists"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych użytkowników" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 changed users" -Supress $true
 $list = $($($users | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).UserName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych użytkowników" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created users" -Supress $true
 $list = $($($users | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "UserName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).UserName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -Text "User Charts"  -HeadingType Heading2 -Supress $true
 
 $chart = $users | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont wyłączonych/włączonych" -CTitle "Stosunek liczby kont wyłączonych i włączonych"
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Enabled\Disabled accounts chart" -CTitle "The ratio of the number of disabled and enabled accounts"
 
 $chart = $users | Group-Object Office | Select-Object Name , @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres biur w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Chart of offices in a cross section of the company" -CTitle "ratio of the number of positions"
 
 $chart = $users | Group-Object Title | Select-Object Name, @{Name = "Values"; Expression = { [math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres stanowisk w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Chart of positions in the cross-section of the companyy" -CTitle "Chart of positions in the cross-section of the company"
 
 $chart = $users | Group-Object Department | Select-Object Name, @{Name = "Values"; Expression = {[math]::round(((($_.Count) / $users.Count) * 100), 2)} } | Where-Object { $_.Values -ge 1 } | Sort-Object -Descending Values
-Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres departamentów w przekroju firmy" -CTitle "Stosunek liczby stanowisk"
+Add-WordChart -CType "Piechart" -CData $chart -STitle "Chart of departments in a cross section of the company" -CTitle "Chart of positions in the cross-section of the company"
 
 #endregion USERS#####################################################################################################
 
 #region GPO############################################################################################################
-Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Polis Grup' -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Group Policy Lists' -Supress $true
 Add-Description -DescriptionPath $pathToDescription -DescriptionType "GPOPolicy"
 
 $groupPolicyObjects = Get-GPO -Domain $($Env:USERDNSDOMAIN) -All 
@@ -383,25 +380,25 @@ $groupPolicyObjectsList = foreach ($groupPolicyObject in $groupPolicyObjects)
 
 Add-WordText -WordDocument $reportFile -Text "Group Policy Lists"  -HeadingType Heading2 -Supress $true 
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych jednostek organizacyjnych" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 modified organisational unit" -Supress $true
 $list = $($($groupPolicyObjectsList | Select-Object ModificationTime, Name | Sort-Object -Descending ModificationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.ModificationTime)" } }).GPOName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych polis grup" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
 $list = $($($groupPolicyObjectsList | Select-Object CreationTime, Name | Sort-Object -Descending CreationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.CreationTime)" } }).GPOName
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Polisy grup nieprzypisane" -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Not applied group policies" -Supress $true
 $list = $($groupPolicyObjectsList | Where-Object { $_.Links.Count -eq 0 }).Name
 Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
 Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
-Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 1"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Group Policy table 1"  -HeadingType Heading3 -Supress $true
 $gpoTable = $($groupPolicyObjectsList | Select-Object Name, HasComputerSettings, HasUserSettings, ComputerSettings, UserSettings)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
 
-Add-WordText -WordDocument $reportFile -Text "Tabela polis grup 2"  -HeadingType Heading3 -Supress $true
+Add-WordText -WordDocument $reportFile -Text "Group Policy table 2"  -HeadingType Heading3 -Supress $true
 $gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled)
 Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
     
@@ -409,7 +406,7 @@ Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGri
 
 #region FGPP##################################################################################################
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Fine Grained Password Policies' -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Fine Grained Password Policies List' -Supress $true
 Add-Description -DescriptionPath $pathToDescription -DescriptionType "FineGrainedPasswordPolicy"
 
 $fgpps = Get-FineGrainedPolicies
@@ -431,14 +428,12 @@ foreach ($fgpp in $fgpps) {
         $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($fgpp.Name) -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
         Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
     }
-    
 
 }
 #endregion FGPP###############################################################################################
-
 #region COMPUTERS#############################################################################################
 
-Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Komputerów' -Supress $true
+Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Computers List' -Supress $true
 Add-Description -DescriptionPath $pathToDescription -DescriptionType "Computer"
 
 $computers=Get-ComputerInformation
@@ -490,60 +485,60 @@ foreach ($computer in $computers)
     
     Add-WordText -WordDocument $reportFile -Text "Computers Table"  -HeadingType Heading2 -Supress $true
     
-    Add-WordText -WordDocument $reportFile -Text "Tabela adresacji"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Address Table"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 
-    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 1"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Security Table 1"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object Name,Enabled,LockedOut,PasswordExpired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 
-    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 2"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Security Table 2"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
     
-    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 3"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Security Table 3"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
 
-    Add-WordText -WordDocument $reportFile -Text "Tabela bezpieczeństwa 4"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Security Table 4"  -HeadingType Heading3 -Supress $true
     $table = $($computers | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
     Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
 
     Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
     
     $chart = $computers | Group-Object Enabled | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordChart -CType "Barchart" -CData $chart -STitle "Wykresy kont komputerów wyłączonych/włączonych" -CTitle "Stosunek liczby kont komputerów wyłączonych i włączonych"
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Computer account enabled\disabled chart" -CTitle "The ratio of the number of computer accounts enabled and disabled"
     
     $chart = $computers | Group-Object OperatingSystem | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku systemów operacyjnych" -CTitle "Stosunek rodzajów systemów operacyjnych"
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Operating systems ratio charts" -CTitle "The ratio of the types of operating systems"
     
     $chart = $computers | Group-Object OperatingSystemVersion | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy stosunku  wersji systemów operacyjnych" -CTitle "Stosunek wersji systemów operacyjnych"
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Operating system version ratio charts" -CTitle "The ratio of the versions of the operating systems"
     
     $chart = $computers | Select-Object Name,@{Name="Values";Expression={$_.LogonCount}} | Sort-Object -Descending Values |Select-Object -First 10
-    Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykresy najczęściej logujących się komputerów" -CTitle "Wykres najczęściej logujących się komputerów"
+    Add-WordChart -CType "Piechart" -CData $chart -STitle "Charts of the most frequently logged in computers" -CTitle "The chart of the most frequently logged on computers"
     #TODO:LocalPolicyFlags - sprawdzic w pracy
 
     Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 logujących się komputerów" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 logging in computers" -Supress $true
     $list = $($($computers | Select-Object LastLogonDate, Name | Sort-Object -Descending LastLogonDate | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.LastLogonDate)" } }).ComputerName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych haseł komputerów" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 computer passwords changed" -Supress $true
     $list = $($($computers | Select-Object PasswordLastSet, Name | Sort-Object -Descending PasswordLastSet | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.PasswordLastSet)" } }).ComputerName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
     
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 zmienionych komputerów" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 changed computers" -Supress $true
     $list = $($($computers | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).ComputerName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Ostatnie 10 utworzonych komputerów" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 computers created" -Supress $true
     $list = $($($computers | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "ComputerName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).ComputerName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
