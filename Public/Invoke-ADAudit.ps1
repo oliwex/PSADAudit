@@ -86,7 +86,8 @@ Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supre
 
 #region GROUPS#####################################################################################################
 Add-WordText -WordDocument $reportFile -Text 'Spis Grup' -HeadingType Heading1 -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Jest to dokumentacja domeny ActiveDirectory przeprowadzona w domena.local. Wszytskie informacje są tajne' -Supress $True 
+
+Add-Description -DescriptionPath $pathToDescription -DescriptionType "Group" 
 
 $groups = Get-GROUPInformation
 
@@ -242,7 +243,7 @@ Add-WordTable -WordDocument $reportFile -DataTable $groupTable -Design ColorfulG
 
 #region USERS#####################################################################################################
 Add-WordText -WordDocument $reportFile -Text 'Spis Użytkowników' -HeadingType Heading1 -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Ta część zawiera spis użytkowników domeny' -Supress $True 
+Add-Description -DescriptionPath $pathToDescription -DescriptionType "User"
 
 $users = Get-USERInformation
 
@@ -331,7 +332,7 @@ Add-WordChart -CType "Piechart" -CData $chart -STitle "Wykres departamentów w p
 
 #region GPO############################################################################################################
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Polis Grup' -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się opis polis grup. Blok nie pokazuje polis podłączonych do SITE' -Supress $True
+Add-Description -DescriptionPath $pathToDescription -DescriptionType "GPOPolicy"
 
 $groupPolicyObjects = Get-GPO -Domain $($Env:USERDNSDOMAIN) -All 
 
@@ -409,7 +410,7 @@ Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGri
 #region FGPP##################################################################################################
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Fine Grained Password Policies' -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się opis obiektów Fine Grained Password Policies' -Supress $True
+Add-Description -DescriptionPath $pathToDescription -DescriptionType "FineGrainedPasswordPolicy"
 
 $fgpps = Get-FineGrainedPolicies
 foreach ($fgpp in $fgpps) {
@@ -438,7 +439,7 @@ foreach ($fgpp in $fgpps) {
 #region COMPUTERS#############################################################################################
 
 Add-WordText -WordDocument $reportFile -HeadingType Heading1 -Text 'Spis Komputerów' -Supress $true
-Add-WordText -WordDocument $reportFile -Text 'Tutaj znajduje się spis komputerów' -Supress $True
+Add-Description -DescriptionPath $pathToDescription -DescriptionType "Computer"
 
 $computers=Get-ComputerInformation
 foreach ($computer in $computers)

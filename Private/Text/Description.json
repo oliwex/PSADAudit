@@ -1,6 +1,6 @@
 [
     {
-        "Name":"OrganizationalUnit",
+        "Name":"OrganisationalUnit",
         "Elements": {
             "CanonicalName":"Name of object in canonical format ex: domain.local/Domain Controllers",
             "City":"Name of City where object belongs to",
@@ -118,7 +118,7 @@
             "Organization":"Name of object organization",
             "OtherName":"Other name of an object",
             "PasswordExpired":"True if account have password that can expire.",
-            "PasswordLastSet":"Represents the date and time that the password for this account was last changed. In Microsoft Active Directory the value is stored as a LargeInteger. If this value is set to 0 and this attribute does not contain the DONT_EXPIRE_PASSWORD flag, then the user must set the password at the next logon.When the administrator clicks the "User must change password at next logon" check-box in Active Directory Users and Computers, the Pwd-Last-Set attribute (PwdLastSet) gets set to 0.",
+            "PasswordLastSet":"Represents the date and time that the password for this account was last changed. In Microsoft Active Directory the value is stored as a LargeInteger. If this value is set to 0 and this attribute does not contain the DONT_EXPIRE_PASSWORD flag, then the user must set the password at the next logon.When the administrator clicks the 'User must change password at next logon' check-box in Active Directory Users and Computers, the Pwd-Last-Set attribute (PwdLastSet) gets set to 0.",
             "PasswordNeverExpires":"If true then password newver expires for this account",
             "PasswordNotRequired":"If true then password is not required for this account",
             "POBox":"Information abou Post Office of an object",
@@ -149,7 +149,7 @@
         }
     },
     {
-            "Name": "GPOPolicies",
+            "Name": "GPOPolicy",
             "Elements": {
             "Name": "Name of an object",
             "Links":"Information where that object is linked.Provided in CanonicalName for OU.",
@@ -169,7 +169,7 @@
         }
     },
     {
-            "Name":"FineGrainedPasswordPolicies",
+            "Name":"FineGrainedPasswordPolicy",
             "Elements":{
                 "Name":"Name of an Object",
                 "ComplexityEnabled":"True if password complexity is enabled for this object, otherwise Fals",
@@ -187,7 +187,7 @@
             }
     },
     {
-            "Name":"Computers",
+            "Name":"Computer",
             "Elements":{
                 "AccountExpirationDate":"Date when accout expire",
                 "AccountLockoutTime":"Time of account lockout",
@@ -233,7 +233,7 @@
                 "OperatingSystemServicePack":"Name of service pack installed on this object. It is commonly used in legacy computers.",
                 "OperatingSystemVersion":"Version of operating system installed on this object",
                 "PasswordExpired":"True if account have password that can expire.",
-                "PasswordLastSet":"Represents the date and time that the password for this account was last changed. In Microsoft Active Directory the value is stored as a LargeInteger. If this value is set to 0 and this attribute does not contain the DONT_EXPIRE_PASSWORD flag, then the user must set the password at the next logon.When the administrator clicks the "User must change password at next logon" check-box in Active Directory Users and Computers, the Pwd-Last-Set attribute (PwdLastSet) gets set to 0.",
+                "PasswordLastSet":"Represents the date and time that the password for this account was last changed. In Microsoft Active Directory the value is stored as a LargeInteger. If this value is set to 0 and this attribute does not contain the DONT_EXPIRE_PASSWORD flag, then the user must set the password at the next logon.When the administrator clicks the 'User must change password at next logon' check-box in Active Directory Users and Computers, the Pwd-Last-Set attribute (PwdLastSet) gets set to 0.",
                 "PasswordNeverExpires":"If true then password newver expires for this account",
                 "PasswordNotRequired":"If true then password is not required for this account",
                 "PrimaryGroup":"Holds the name of the group which is primary for an object",
