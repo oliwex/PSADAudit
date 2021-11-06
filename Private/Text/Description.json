@@ -13,7 +13,7 @@
             "InstanceType":"Bitfield dictates how the object is instantiated on server.1 - Head of naming context;2 - repica not instantiated;4-object is writable;8-naming context above this object is held,16-naming context is constructing for the first time by replication,32-naming contextis in proces of being remover from local Directory System Agent(DSA)",
             "IsCriticalSystemObject":"If TRUE then object is replicated during installation of new replica",
             "LastKnownParent":"DistinguishedName of object of last know parent of orphaned object",
-            "LinkedGroupPolicyObject":"",
+            "LinkedGroupPolicyObject":"Name of GPO Object linked to Organisational Unit",
             "ManagedBy":"DistinguishedName of object which is assigned to manage this object",
             "Modified":"Calculated attribute by AD to point when the object is modified",
             "Name":"Name of an object",

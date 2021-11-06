@@ -16,7 +16,7 @@ function Invoke-ADAudit
 
     #region TOC #########################################################################################################
 
-    Add-WordTOC -WordDocument $reportFile -Title "Spis treści" -Supress $true
+    Add-WordTOC -WordDocument $reportFile -Title "Table of Content" -Supress $true
 
     Add-WordPageBreak -WordDocument $reportFile -Supress $true
 
@@ -32,7 +32,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($ou.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $ou -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($ou.Name) -Transpose  -Supress $True
+        Add-WordTable -WordDocument $reportFile -DataTable $ou -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($ou.Name) -Transpose  -Supress $True
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Graph" -Supress $true 
 
@@ -47,12 +47,27 @@ function Invoke-ADAudit
             $imagePath = Get-GraphImage -GraphRoot $ouRoot -GraphMiddle $($ou.Name) -GraphLeaf $ouLeaf  -BasePathToGraphImage $($reportGraphFolders.OU)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
-    
+        
+        #ManagedBy
+        #TEST
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) ManagedBy" -Supress $true 
+            
+        $ouTMP = $ou.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $ouTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($ou.Name) do not have above elements" -Supress $true       
+        }
+        else 
+        {
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $ouTMP -GraphLeaf $($ou.Name)  -BasePathToGraphImage $($reportGraphFolders.OU)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
         #ACL
         $ouACL = Get-OUAcl -OU $($ou.DistinguishedName)
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($ou.Name) Permissions" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($ouACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($ouACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true #MediumShading1Accent5
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($ouACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -70,7 +85,7 @@ function Invoke-ADAudit
     $list = $($($ous | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "OUName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).OUName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
     $list = $($($ous | Select-Object whenCreated, Name | Sort-Object -Descending whenCreated | Select-Object -First 10) | Select-Object @{Name = "OUName"; Expression = { "$($_.Name) - $($_.whenCreated)" } }).OUName
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
@@ -92,7 +107,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+        Add-WordTable -WordDocument $reportFile -DataTable $group -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
@@ -109,11 +124,27 @@ function Invoke-ADAudit
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
+
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) ManagedBy" -Supress $true 
+            
+        $groupTMP = $group.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $groupTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above elements" -Supress $true       
+        }
+        else 
+        {
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $groupTMP -GraphLeaf $($group.Name)  -BasePathToGraphImage $($reportGraphFolders.GROUP)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+
         #ACL
         $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -130,7 +161,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+        Add-WordTable -WordDocument $reportFile -DataTable $group -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
@@ -146,11 +177,26 @@ function Invoke-ADAudit
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($group.Name) ManagedBy" -Supress $true 
+            
+        $groupTMP = $group.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $groupTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above elements" -Supress $true       
+        }
+        else 
+        {
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $groupTMP -GraphLeaf $($group.Name)  -BasePathToGraphImage $($reportGraphFolders.GROUP)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+
         #ACL
         $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -166,7 +212,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text $($group.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $group -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
+        Add-WordTable -WordDocument $reportFile -DataTable $group -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($group.Name) -Transpose -Supress $True
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Graph" -Supress $true
 
@@ -182,25 +228,46 @@ function Invoke-ADAudit
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($group.Name) ManagedBy" -Supress $true 
+            
+        $groupTMP = $group.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $groupTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($group.Name) do not have above elements" -Supress $true       
+        }
+        else 
+        {
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $groupTMP -GraphLeaf $($group.Name)  -BasePathToGraphImage $($reportGraphFolders.GROUP)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
         #ACL
         $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) Permissions" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($groupACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "OU Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($groupACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     }
 
-    Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
+        Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Tabela grup"  -HeadingType Heading3 -Supress $true
 
-    $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-    Add-WordChart -CType "Barchart" -CData $chart -STitle "Distribution\Security group chart" -CTitle "Ratio between security groups and distribution groups"
+    $groupTable = $groups | Group-Object GroupScope | ForEach-Object {
+        $categories = $_.Group | Group-Object GroupCategory -AsHashtable -AsString
 
-    $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
-        Add-WordChart -CType "Barchart" -CData $chart -STitle "Local\Global\Universal group chart" -CTitle "Ratio between local groups,global groups and universal groups"
+        [PSCustomObject]@{
+            GroupName    = $_.Name
+            Security     = $categories['Security'].Count
+            Distribution = $categories['Distribution'].Count
+        }
+    }
 
+    Add-WordTable -WordDocument $reportFile -DataTable $groupTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+    
     Add-WordText -WordDocument $reportFile -Text "Group Lists"  -HeadingType Heading2 -Supress $true
 
     $list = $($($groups | Select-Object whenChanged, Name | Sort-Object -Descending whenChanged | Select-Object -First 10) | Select-Object @{Name = "GroupName"; Expression = { "$($_.Name) - $($_.whenChanged)" } }).GroupName
@@ -215,20 +282,17 @@ function Invoke-ADAudit
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Empty Groups" -Supress $true
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-    Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
-    Add-WordText -WordDocument $reportFile -Text "Tabela grup"  -HeadingType Heading3 -Supress $true
 
-    $groupTable = $groups | Group-Object GroupScope | ForEach-Object {
-        $categories = $_.Group | Group-Object GroupCategory -AsHashtable -AsString
 
-        [PSCustomObject]@{
-            GroupName    = $_.Name
-            Security     = $categories['Security'].Count
-            Distribution = $categories['Distribution'].Count
-        }
-    }
+    Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
-    Add-WordTable -WordDocument $reportFile -DataTable $groupTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+    $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Distribution\Security group chart" -CTitle "Ratio between security groups and distribution groups"
+
+    $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
+    Add-WordChart -CType "Barchart" -CData $chart -STitle "Local\Global\Universal group chart" -CTitle "Ratio between local groups,global groups and universal groups"
+
+
 
     #TODO:Group Graphs
     #endregion GROUPS#####################################################################################################
@@ -244,17 +308,40 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($user.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $user -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($user.Name) -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $user -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($user.Name) -Transpose -Supress $true
     
         #MemberOf
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
 
         if ($null -eq $($user.MemberOf)) {
-            Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have below elements" -Supress $true   
+            Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have below elements" -Supress $true
+
+            $memberOfTMP = $($($($user.PrimaryGroup) -split ',*..=')[1])
+
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+
         }
         else {
             $memberOfTMP = $user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
+
+            $memberOfTMP += $($($($user.PrimaryGroup) -split ',*..=')[1])
+
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
+            Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
+        }
+
+        #ManagedBy
+        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) ManagedBy" -Supress $true 
+            
+        $userTMP = $user.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
+        if ($null -eq $userTMP) 
+        {
+            Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have above elements" -Supress $true       
+        }
+        else 
+        {
+            $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $userTMP -GraphLeaf $($user.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
 
@@ -277,7 +364,7 @@ function Invoke-ADAudit
         $userACL = Get-USERAcl -USER_ACL $($user.DistinguishedName)
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) Permissions" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($userACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "User Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($userACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "User Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($userACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -289,11 +376,11 @@ function Invoke-ADAudit
 
     Add-WordText -WordDocument $reportFile -Text "Users Table Location"  -HeadingType Heading3 -Supress $true
     $table = $($users | Select-Object Name, Department, City, Country)
-    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
     Add-WordText -WordDocument $reportFile -Text "Security Table"  -HeadingType Heading3 -Supress $true
     $table = $($users | Select-Object Name, CannotChangePassword, PasswordExpired, PasswordNeverExpires, PasswordNotRequired)
-    Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+    Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
     Add-WordText -WordDocument $reportFile -Text "Users Lists"  -HeadingType Heading2 -Supress $true
 
@@ -334,7 +421,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($gpoObject.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $gpoObject -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($gpoObject.Name) -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $gpoObject -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($gpoObject.Name) -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Graph" -Supress $true
         
         
@@ -354,15 +441,14 @@ function Invoke-ADAudit
         $gpoObjectACL = Get-GPOAclSimple -GroupPolicy $groupPolicyObject
         
         $gpoObjectACL.ACL | ForEach-Object {
-            Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "Permissions" -Transpose -Supress $true
-            Add-WordText -WordDocument $reportFile -Text "" -Supress $true 
+            Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "Permissions" -Supress $true -Transpose
         }
 
-        #ACL
+
         $pathACL = Get-GPOAclExtended -GPO_ACL $($groupPolicyObject.Path)
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($gpoObject.Name) Permissions Extended" -Supress $true 
-        Add-WordTable -WordDocument $reportFile -DataTable $($pathACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $($pathACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
         Add-WordTable -WordDocument $reportFile -DataTable $($pathACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -371,20 +457,6 @@ function Invoke-ADAudit
         $gpoObject
     }
 
-
-    Add-WordText -WordDocument $reportFile -Text "Group Policy Lists"  -HeadingType Heading2 -Supress $true 
-
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 modified organisational unit" -Supress $true
-    $list = $($($groupPolicyObjectsList | Select-Object ModificationTime, Name | Sort-Object -Descending ModificationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.ModificationTime)" } }).GPOName
-    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
-
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
-    $list = $($($groupPolicyObjectsList | Select-Object CreationTime, Name | Sort-Object -Descending CreationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.CreationTime)" } }).GPOName
-    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
-
-    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Not applied group policies" -Supress $true
-    $list = $($groupPolicyObjectsList | Where-Object { $_.Links.Count -eq 0 }).Name
-    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
     Add-WordText -WordDocument $reportFile -Text "GroupPolicy Tables"  -HeadingType Heading2 -Supress $true
 
@@ -395,6 +467,21 @@ function Invoke-ADAudit
     Add-WordText -WordDocument $reportFile -Text "Group Policy table 2"  -HeadingType Heading3 -Supress $true
     $gpoTable = $($groupPolicyObjectsList | Select-Object Name,UserEnabled, ComputerEnabled)
     Add-WordTable -WordDocument $reportFile -DataTable $gpoTable -Design ColorfulGridAccent1 -Supress $True #-Verbose
+
+
+    Add-WordText -WordDocument $reportFile -Text "Group Policy Lists"  -HeadingType Heading2 -Supress $true 
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 modified organisational unit" -Supress $true
+    $list = $($($groupPolicyObjectsList | Select-Object ModificationTime, Name | Sort-Object -Descending ModificationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.ModificationTime)" } }).GPOName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Last 10 created organisational unit" -Supress $true
+    $list = $($($groupPolicyObjectsList | Select-Object CreationTime, Name | Sort-Object -Descending CreationTime | Select-Object -First 10) | Select-Object @{Name = "GPOName"; Expression = { "$($_.Name) - $($_.CreationTime)" } }).GPOName
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
+
+    Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Not applied group policies" -Supress $true
+    $list = $($groupPolicyObjectsList | Where-Object { $_.Links.Count -eq 0 }).Name
+    Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
         
     #endregion GPO################################################################################################
 
@@ -408,7 +495,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($fgpp.Name) -Supress $true
         
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($fgpp.Name) Information" -Supress $true
-        Add-WordTable -WordDocument $reportFile -DataTable $fgpp -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($fgpp.Name) -Transpose -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $fgpp -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($fgpp.Name) -Transpose -Supress $true
 
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($fgpp.Name) is applied to" -Supress $true
         
@@ -436,7 +523,7 @@ function Invoke-ADAudit
             Add-WordText -WordDocument $reportFile -HeadingType Heading2 -Text $($computer.Name) -Supress $true
         
             Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) Information" -Supress $true
-            Add-WordTable -WordDocument $reportFile -DataTable $computer -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle $($computer.Name) -Transpose -Supress $true
+            Add-WordTable -WordDocument $reportFile -DataTable $computer -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle $($computer.Name) -Transpose -Supress $true
             
             #MemberOf
             Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) MemberOfGroup Graph" -Supress $true 
@@ -444,10 +531,19 @@ function Invoke-ADAudit
             $computerLeafTMP = $computer.MemberOf| ForEach-Object { $(($_ -split ',*..=')[1]) }
             if ($null -eq $computerLeafTMP) 
             {
-                Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have below elements" -Supress $true     
+                Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have below elements" -Supress $true
+                
+                $computerLeafTMP = $($($($computer.PrimaryGroup) -split ',*..=')[1])
+
+                $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
+                Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True     
             }
             else 
             {
+                
+
+                $computerLeafTMP+= $($($($computerLeafTMP.PrimaryGroup) -split ',*..=')[1])
+
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
             }
@@ -470,7 +566,7 @@ function Invoke-ADAudit
             $computerACL = Get-GPOAclExtended -GPO_ACL $($computer.DistinguishedName)
 
             Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) Permissions Extended" -Supress $true 
-            Add-WordTable -WordDocument $reportFile -DataTable $($computerACL | Select-Object -Property * -ExcludeProperty ACLs) -Design ColorfulGridAccent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
+            Add-WordTable -WordDocument $reportFile -DataTable $($computerACL | Select-Object -Property * -ExcludeProperty ACLs) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "GPO Options" -Transpose -Supress $true
             Add-WordText -WordDocument $reportFile -Text "" -Supress $true
         
             Add-WordTable -WordDocument $reportFile -DataTable $($computerACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
@@ -481,27 +577,27 @@ function Invoke-ADAudit
         
         Add-WordText -WordDocument $reportFile -Text "Address Table"  -HeadingType Heading3 -Supress $true
         $table = $($computers | Select-Object DNSHostName, IP4, IP6,Location)
-        Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
 
         Add-WordText -WordDocument $reportFile -Text "Security Table 1"  -HeadingType Heading3 -Supress $true
         $table = $($computers | Select-Object Name,Enabled,LockedOut,PasswordExpired)
-        Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
 
         Add-WordText -WordDocument $reportFile -Text "Security Table 2"  -HeadingType Heading3 -Supress $true
         $table = $($computers | Select-Object Name, AllowReversiblePasswordEncryption,CannotChangePassword,PasswordNeverExpires,PasswordNotRequired)
-        Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
         
         Add-WordText -WordDocument $reportFile -Text "Security Table 3"  -HeadingType Heading3 -Supress $true
         $table = $($computers | Select-Object Name, AccountNotDelegated,TrustedForDelegation,IsCriticalSystemObject)
-        Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
 
         Add-WordText -WordDocument $reportFile -Text "Security Table 4"  -HeadingType Heading3 -Supress $true
         $table = $($computers | Select-Object Name, DoesNotRequirePreAuth,ProtectedFromAccidentalDeletion,USEDESKeyOnly)
-        Add-WordTable -WordDocument $reportFile -DataTable $table -Design ColorfulGridAccent5 -AutoFit Window -Supress $true
+        Add-WordTable -WordDocument $reportFile -DataTable $table -Design MediumShading1Accent5 -AutoFit Window -Supress $true
 
         Add-WordText -WordDocument $reportFile -Text "Computer charts"  -HeadingType Heading3 -Supress $true
         
@@ -538,6 +634,6 @@ function Invoke-ADAudit
 
     #endregion COMPUTERS##########################################################################################
     ##############################################################################################################
-    Save-WordDocument $reportFile -Supress $true -Language "en-US"  -OpenDocument -Verbose
+    Save-WordDocument $reportFile -Supress $true -Language "en-US" -Verbose
+    Get-Date
 }
-
