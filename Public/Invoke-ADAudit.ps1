@@ -151,7 +151,6 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     }
 
-
     Add-WordText -WordDocument $reportFile -Text "Security Groups"  -HeadingType Heading2 -Supress $true
 
     $groupObjects=$groups | Where-Object { (-not($_.GroupType -band 1)) -and ($_.GroupCategory -eq "Security") }
@@ -178,7 +177,7 @@ function Invoke-ADAudit
         }
 
         #ManagedBy
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($group.Name) ManagedBy" -Supress $true 
+        Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) ManagedBy" -Supress $true 
             
         $groupTMP = $group.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
         if ($null -eq $groupTMP) 
@@ -190,7 +189,6 @@ function Invoke-ADAudit
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $groupTMP -GraphLeaf $($group.Name)  -BasePathToGraphImage $($reportGraphFolders.GROUP)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
-
 
         #ACL
         $groupACL=Get-GROUPAcl -GROUP_ACL $($group.DistinguishedName)
@@ -229,7 +227,7 @@ function Invoke-ADAudit
         }
 
         #ManagedBy
-        Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($group.Name) ManagedBy" -Supress $true 
+        Add-WordText -WordDocument $reportFile -HeadingType Heading4 -Text "$($group.Name) ManagedBy" -Supress $true 
             
         $groupTMP = $group.ManagedBy | ForEach-Object { $(($_ -split ',*..=')[1]) }
         if ($null -eq $groupTMP) 
@@ -254,7 +252,7 @@ function Invoke-ADAudit
     }
 
         Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
-    Add-WordText -WordDocument $reportFile -Text "Tabela grup"  -HeadingType Heading3 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Grup difference"  -HeadingType Heading3 -Supress $true
 
     $groupTable = $groups | Group-Object GroupScope | ForEach-Object {
         $categories = $_.Group | Group-Object GroupCategory -AsHashtable -AsString
@@ -282,8 +280,6 @@ function Invoke-ADAudit
     Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "Empty Groups" -Supress $true
     Add-WordList -WordDocument $reportFile -ListType Numbered -ListData $list -Supress $true -Verbose
 
-
-
     Add-WordText -WordDocument $reportFile -Text "Group Charts"  -HeadingType Heading2 -Supress $true
 
     $chart = $groups | Group-Object GroupCategory | Select-Object Name, @{Name="Values";Expression={$_.Count}}
@@ -291,8 +287,6 @@ function Invoke-ADAudit
 
     $chart = $groups | Group-Object GroupScope | Select-Object Name, @{Name="Values";Expression={$_.Count}}
     Add-WordChart -CType "Barchart" -CData $chart -STitle "Local\Global\Universal group chart" -CTitle "Ratio between local groups,global groups and universal groups"
-
-
 
     #TODO:Group Graphs
     #endregion GROUPS#####################################################################################################
@@ -312,20 +306,16 @@ function Invoke-ADAudit
     
         #MemberOf
         Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($user.Name) MemberOfGroup Graph" -Supress $true 
-
+        
         if ($null -eq $($user.MemberOf)) {
             Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have below elements" -Supress $true
-
-            $memberOfTMP = $($($($user.PrimaryGroup) -split ',*..=')[1])
-
+            $memberOfTMP = @($($($($user.PrimaryGroup) -split ',*..=')[1]))
+            
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
-
         }
         else {
-            $memberOfTMP = $user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }
-
-            $memberOfTMP += $($($($user.PrimaryGroup) -split ',*..=')[1])
+            $memberOfTMP = @($($user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }), $($($($user.PrimaryGroup) -split ',*..=')[1]))
 
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
@@ -441,7 +431,7 @@ function Invoke-ADAudit
         $gpoObjectACL = Get-GPOAclSimple -GroupPolicy $groupPolicyObject
         
         $gpoObjectACL.ACL | ForEach-Object {
-            Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design MediumShading1Accent5 -AutoFit Window -OverwriteTitle "Permissions" -Supress $true -Transpose
+            Add-WordTable -WordDocument $reportFile -DataTable $($_) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true 
         }
 
 
@@ -528,21 +518,17 @@ function Invoke-ADAudit
             #MemberOf
             Add-WordText -WordDocument $reportFile -HeadingType Heading3 -Text "$($computer.Name) MemberOfGroup Graph" -Supress $true 
             
-            $computerLeafTMP = $computer.MemberOf| ForEach-Object { $(($_ -split ',*..=')[1]) }
             if ($null -eq $computerLeafTMP) 
             {
                 Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have below elements" -Supress $true
-                
-                $computerLeafTMP = $($($($computer.PrimaryGroup) -split ',*..=')[1])
-
+            
+                $computerLeafTMP = @($($($($computer.PrimaryGroup) -split ',*..=')[1]))
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True     
             }
             else 
-            {
-                
-
-                $computerLeafTMP+= $($($($computerLeafTMP.PrimaryGroup) -split ',*..=')[1])
+            {        
+                $computerLeafTMP = @($($($($computer.PrimaryGroup) -split ',*..=')[1]),$computer.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) })
 
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
