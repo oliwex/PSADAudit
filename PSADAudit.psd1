@@ -30,10 +30,10 @@ CompanyName = 'Unknown'
 Copyright = '(c) Minio. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'This module uses PSWriteWord and PSGraph modules and GraphViz repository. It creates full Active Directory Organisational Audit.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -51,7 +51,7 @@ Copyright = '(c) Minio. All rights reserved.'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @(PSWriteWord,PSGraph)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
