@@ -2,6 +2,17 @@
 ##########################################################################################
 #                                  MAIN SCRIPT                                           #
 ##########################################################################################
+function ToArray {
+    begin {
+        $output = @();
+    }
+    process {
+        $output += $_;
+    }
+    end {
+        return , $output;
+    }
+}
 
 function Invoke-ADAudit
 {
@@ -251,7 +262,7 @@ function Invoke-ADAudit
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
     }
 
-        Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
+    Add-WordText -WordDocument $reportFile -Text "Group Tables"  -HeadingType Heading2 -Supress $true
     Add-WordText -WordDocument $reportFile -Text "Grup difference"  -HeadingType Heading3 -Supress $true
 
     $groupTable = $groups | Group-Object GroupScope | ForEach-Object {
@@ -309,13 +320,13 @@ function Invoke-ADAudit
         
         if ($null -eq $($user.MemberOf)) {
             Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have below elements" -Supress $true
-            $memberOfTMP = @($($($($user.PrimaryGroup) -split ',*..=')[1]))
+            $memberOfTMP = $($($($user.PrimaryGroup) -split ',*..=')[1])
             
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
         }
         else {
-            $memberOfTMP = @($($user.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) }), $($($($user.PrimaryGroup) -split ',*..=')[1]))
+            $memberOfTMP = $($($user.MemberOf) + $($user.PrimaryGroup) | ForEach-Object { $(($_ -split ',*..=')[1]) }  )
 
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
@@ -522,14 +533,13 @@ function Invoke-ADAudit
             {
                 Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have below elements" -Supress $true
             
-                $computerLeafTMP = @($($($($computer.PrimaryGroup) -split ',*..=')[1]))
+                $computerLeafTMP = $($($($computer.PrimaryGroup) -split ',*..=')[1])
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True     
             }
             else 
             {        
-                $computerLeafTMP = @($($($($computer.PrimaryGroup) -split ',*..=')[1]),$computer.MemberOf | ForEach-Object { $(($_ -split ',*..=')[1]) })
-
+                $computerLeafTMP = $($($computer.PrimaryGroup) + $($computer.MemberOf) | ForEach-Object { $(($_ -split ',*..=')[1]) }  )
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
             }
@@ -598,7 +608,6 @@ function Invoke-ADAudit
         
         $chart = $computers | Select-Object Name,@{Name="Values";Expression={$_.LogonCount}} | Sort-Object -Descending Values |Select-Object -First 10
         Add-WordChart -CType "Piechart" -CData $chart -STitle "Charts of the most frequently logged in computers" -CTitle "The chart of the most frequently logged on computers"
-        #TODO:LocalPolicyFlags - sprawdzic w pracy
 
         Add-WordText -WordDocument $reportFile -Text "Computers List"  -HeadingType Heading2 -Supress $true
         
@@ -621,5 +630,4 @@ function Invoke-ADAudit
     #endregion COMPUTERS##########################################################################################
     ##############################################################################################################
     Save-WordDocument $reportFile -Supress $true -Language "en-US" -Verbose
-    Get-Date
 }
