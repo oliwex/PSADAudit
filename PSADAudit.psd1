@@ -51,7 +51,7 @@ PowerShellVersion = '5.1'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules = @(@{ModuleName = "PsGraph"; ModuleVersion = "2.1.38.27"; GUID = "03a82298-c9af-48b5-b607-72988687759b" }, @{ModuleName = "PsWriteWord"; ModuleVersion = "1.1.10"; GUID = "6314c78a-d011-4489-b462-91b05ec6a5c4" })
+#RequiredModules = @(@{ModuleName = "PsGraph"; ModuleVersion = "2.1.38.27"; GUID = "03a82298-c9af-48b5-b607-72988687759b" }, @{ModuleName = "PsWriteWord"; ModuleVersion = "1.1.10"; GUID = "6314c78a-d011-4489-b462-91b05ec6a5c4" })
 
 
 # Assemblies that must be loaded prior to importing this module
