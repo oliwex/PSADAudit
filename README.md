@@ -17,7 +17,7 @@ The purpose of this project is provide information about OrganizationalUnits, Us
     <details>
         <summary>Add-Description</summary>
             <p>
-            `function Add-Description 
+        ```function Add-Description 
         {
         Param(
             [Parameter(Mandatory = $true)]
@@ -61,10 +61,11 @@ The purpose of this project is provide information about OrganizationalUnits, Us
             }
         }
         Add-WordList -WordDocument $reportFile -ListType Bulleted -ListData $descriptionObject -Supress $true -Verbose
-
-    }`
-        </p>
+        }
+    ```
+    </p>
 </details>
+
 ## Public
 # Results
 [Example results]
