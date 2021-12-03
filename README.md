@@ -4,7 +4,7 @@ Information about PSADAudit
 The purpose of this project is provide information about OrganizationalUnits, Users, Groups, Computers GPO in Word document in case of organisational Audit. The module is a simple script which uses multiple functions to reach his goal. The scipt shows users in graphs, tables and images to better visualise his data.
 # Technologies
 * PowerShell Modules
-    * PSWriteWord - Author: (https://github.com/EvotecIT/PSWriteWord "EvotecIT - Przemyslaw Klys")
+    * PSWriteWord - Author: [Named Link](https://github.com/EvotecIT/PSWriteWord "EvotecIT - Przemyslaw Klys")
     * PSGraph - Author: Kevin Marquette
 * Graphviz - simple API to create graphs in PowerShell
 # Requirements
