@@ -1,6 +1,27 @@
 # PSADAudit
 Information about PSADAudit
-[TODO:images]
+
+<p align="center">
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/codefactor/grade/github/oliwex/PSADAudit/MODULE?style=plastic"></a>
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/tokei/lines/github/oliwex/PSADAudit"></a>
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/powershellgallery/dt/PSADAudit"></a>
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/powershellgallery/v/PSADAudit"></a>
+</p>
+<p align="center">
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/github/languages/count/oliwex/PSADAudit"></a>
+  <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/github/languages/top/oliwex/PSADAudit"></a>
+</p>
+<p align="center">
+    <a href="https://github.com/oliwex/PSADAudit"><img src="https://img.shields.io/github/repo-size/oliwex/PSADAudit"></a>
+    <a href="https://github.com/oliwex/PSADAudit"><img src="https://img.shields.io/github/languages/code-size/oliwex/PSADAudit"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/oliwex"><img src="https://img.shields.io/github/followers/oliwex?style=social"></a>
+  <a href="https://github.com/oliwex/PSADAudit"><img src="https://img.shields.io/github/stars/oliwex/PSADAudit?style=social"></a>
+</p>
+
+
+
 # Introduction
 The purpose of this project is provide information about OrganizationalUnits, Users, Groups, Computers GPO in Word document in case of organisational Audit. The module is a simple script which uses multiple functions to reach his goal. The scipt shows users in graphs, tables and images to better visualise his data.
 # Technologies
