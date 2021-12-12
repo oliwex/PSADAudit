@@ -5,9 +5,6 @@
 
 function Invoke-ADAudit
 {
-    #Prepare to script execution
-    Install-Chocolatey
-
     #Prepare Workplace for script Execution
     $basePath=New-Workplace
     $reportGraphFolders = Get-ReportFolders -BasePath $basePath -GraphFoldersHashtable $graphFolders
