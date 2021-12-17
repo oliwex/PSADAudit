@@ -9,4 +9,4 @@ $graphFolders = @{
 }
 
 #Description json
-$pathToDescription="$(($env:PSModulePath -split ";")[1])\PSADAudit\Private\Text\Description.json"
+$pathToDescription="$PSScriptRoot\Text\Description.json"
