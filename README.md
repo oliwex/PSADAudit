@@ -28,7 +28,5 @@ The purpose of this project is provide information about OrganizationalUnits, Us
 # Requirements
 * PowerShell Min Version 5.1
 * Graphviz
-# Results
-TODO
 # Examples
 TODO
