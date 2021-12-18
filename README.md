@@ -1,6 +1,4 @@
 # PSADAudit
-Information about PSADAudit
-
 <p align="center">
   <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/codefactor/grade/github/oliwex/PSADAudit/MODULE?style=plastic"></a>
   <a href="https://www.powershellgallery.com/packages/PSADAudit"><img src="https://img.shields.io/tokei/lines/github/oliwex/PSADAudit"></a>
