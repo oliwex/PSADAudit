@@ -14,6 +14,7 @@
     <a href="https://github.com/oliwex/PSADAudit"><img src="https://img.shields.io/github/languages/code-size/oliwex/PSADAudit"></a>
 </p>
 <p align="center">
+  <a href="https://github.com/oliwex"><img src="https://img.shields.io/github/stars/oliwex?style=social"></a>
   <a href="https://github.com/oliwex"><img src="https://img.shields.io/github/followers/oliwex?style=social"></a>
   <a href="https://github.com/oliwex/PSADAudit"><img src="https://img.shields.io/github/stars/oliwex/PSADAudit?style=social"></a>
 </p>
