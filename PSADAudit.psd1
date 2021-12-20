@@ -51,12 +51,7 @@ PowerShellVersion = '5.1'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-<<<<<<< Updated upstream
 RequiredModules = 'PSGraph','PSWriteWord'
-=======
-RequiredModules = @(@{ModuleName = "PsGraph"; ModuleVersion = "2.1.38.27"; GUID = "03a82298-c9af-48b5-b607-72988687759b" }, @{ModuleName = "PsWriteWord"; ModuleVersion = "1.1.10"; GUID = "6314c78a-d011-4489-b462-91b05ec6a5c4" })
-
->>>>>>> Stashed changes
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -100,13 +95,13 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+         Tags = @("Active Directory","Report","Audit","PSGraph","PSWriteWord")
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        # ProjectUri = https://github.com/oliwex/PSADAudit''
+         ProjectUri = 'https://github.com/oliwex/PSADAudit'
 
         # A URL to an icon representing this module.
         # IconUri = ''
