@@ -361,7 +361,6 @@ function Invoke-ADAudit
 
     New-InformationLog -LogPath $logFilePath -Message "Created Group Graphs" -Color GREEN
 
-    #TODO:Group Graphs
     #endregion GROUPS#####################################################################################################
 
     #region USERS#####################################################################################################
@@ -393,7 +392,7 @@ function Invoke-ADAudit
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
 
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) is member of primary group" -Color RED
+            New-InformationLog -LogPath $logFilePath -Message "User $($user.Name) is member of primary group" -Color RED
         }
         else {
             $memberOfTMP = $($($user.MemberOf) + $($user.PrimaryGroup) | ForEach-Object { $(($_ -split ',*..=')[1]) }  )
@@ -401,7 +400,7 @@ function Invoke-ADAudit
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($user.Name) -GraphLeaf $memberOfTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
 
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) is member of primary group and other group" -Color RED
+            New-InformationLog -LogPath $logFilePath -Message "User $($user.Name) is member of primary group and other group" -Color RED
         }
 
         #ManagedBy
@@ -411,13 +410,13 @@ function Invoke-ADAudit
         if ($null -eq $userTMP) 
         {
             Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have above elements" -Supress $true
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) do not have above elements" -Color RED      
+            New-InformationLog -LogPath $logFilePath -Message " User $($user.Name) do not have above elements" -Color RED      
         }
         else 
         {
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $userTMP -GraphLeaf $($user.Name)  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) have above element" -Color GREEN
+            New-InformationLog -LogPath $logFilePath -Message "User $($user.Name) have ManagedBy elements" -Color GREEN
         }
 
         #Manager
@@ -427,13 +426,13 @@ function Invoke-ADAudit
         if (($null -eq $managerTMP) -and ($null -eq $directReportsTMP))
         {
             Add-WordText -WordDocument $reportFile -Text "$($user.Name) do not have above and below elements" -Supress $true
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) do not have above and below elements" -Color RED   
+            New-InformationLog -LogPath $logFilePath -Message "User $($user.Name) do not have above and below elements" -Color RED   
         }
         else
         {
             $imagePath = Get-GraphImage -GraphRoot $managerTMP -GraphMiddle $($user.Name) -GraphLeaf $directReportsTMP  -BasePathToGraphImage $($reportGraphFolders.USERS)
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
-            New-InformationLog -LogPath $logFilePath -Message "$($user.Name) have above and below elements" -Color GREEN
+            New-InformationLog -LogPath $logFilePath -Message "User $($user.Name) have Manager or Direct Employees" -Color GREEN
         }
         #TODO:Create graph with full organisation manager and direct report
 
@@ -553,7 +552,7 @@ function Invoke-ADAudit
         Add-WordTable -WordDocument $reportFile -DataTable $($pathACL.ACLs) -Design MediumShading1Accent5 -AutoFit Window  -Supress $true
         Add-WordText -WordDocument $reportFile -Text "" -Supress $true
                 
-        New-InformationLog -LogPath $logFilePath -Message "Create ACL table with GPO $($gpoObject.Name)" -Color GREEN 
+        New-InformationLog -LogPath $logFilePath -Message "Create ACL table with GPO $($gpoObject.Name) information" -Color GREEN 
 
         $gpoObject
     }
@@ -621,7 +620,7 @@ function Invoke-ADAudit
             $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($fgpp.Name) -GraphLeaf $fgppAplliedTMP -pathToImage $reportGraphFolders.FGPP
             Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
             
-            New-InformationLog -LogPath $logFilePath -Message "FGPP is applied to few objects" -Color GREEN
+            New-InformationLog -LogPath $logFilePath -Message "FGPP $($fgpp.Name) is applied to few objects" -Color GREEN
         }
 
     }
@@ -655,7 +654,7 @@ function Invoke-ADAudit
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
                 
-                New-InformationLog -LogPath $logFilePath -Message "$($computer.Name) do not have below elements" -Color RED 
+                New-InformationLog -LogPath $logFilePath -Message "Computer $($computer.Name) is not Member Of groups" -Color RED 
             }
             else 
             {        
@@ -663,7 +662,7 @@ function Invoke-ADAudit
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $($computer.Name) -GraphLeaf $computerLeafTMP  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
 
-                New-InformationLog -LogPath $logFilePath -Message "$($computer.Name) is member of few groups" -Color GREEN
+                New-InformationLog -LogPath $logFilePath -Message "Computer $($computer.Name) is member of few groups" -Color GREEN
             }
 
             #ManagedBy
@@ -673,14 +672,14 @@ function Invoke-ADAudit
             if ($null -eq $managerTMP) 
             {
                 Add-WordText -WordDocument $reportFile -Text "$($computer.Name) do not have above elements" -Supress $true
-                New-InformationLog -LogPath $logFilePath -Message "$($computer.Name) do not have above elements" -Color RED     
+                New-InformationLog -LogPath $logFilePath -Message "Computer $($computer.Name) is not Managed by other elements" -Color RED     
             }
             else 
             {
                 $imagePath = Get-GraphImage -GraphRoot $null -GraphMiddle $managerTMP -GraphLeaf $($computer.Name)  -BasePathToGraphImage $($reportGraphFolders.COMPUTERS)
                 Add-WordPicture -WordDocument $reportFile -ImagePath $imagePath -Alignment center -ImageWidth 600 -Supress $True
 
-                New-InformationLog -LogPath $logFilePath -Message "$($computer.Name) is not managedBy by any of element" -Color GREEN 
+                New-InformationLog -LogPath $logFilePath -Message "Computer $($computer.Name) is Managed by one of elements" -Color GREEN 
             }
 
             #ACL
