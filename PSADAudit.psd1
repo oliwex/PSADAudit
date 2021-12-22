@@ -12,7 +12,7 @@
 RootModule = 'PSADAudit.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.4'
+ModuleVersion = '0.0.5'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -51,7 +51,7 @@ PowerShellVersion = '5.1'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = "PSGraph","PSWriteWord"
+RequiredModules = 'PSGraph','PSWriteWord'
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-         Tags = @("Active Directory","Report","Audit","PSGraph","PSWriteWord")
+         Tags = @('ActiveDirectory','Report','Audit','PSGraph','PSWriteWord','Office','Windows','doc')
 
         # A URL to the license for this module.
         # LicenseUri = ''
